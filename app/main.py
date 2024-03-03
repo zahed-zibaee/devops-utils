@@ -1,10 +1,12 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from fastapi.middleware.httpsredirect import HTTPSRedirectMiddleware
 from .routers import lock
 
 
 app = FastAPI()
+app.add_middleware(HTTPSRedirectMiddleware)
 
 app.include_router(lock.router)
 
