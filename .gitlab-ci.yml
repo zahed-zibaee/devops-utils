@@ -1,0 +1,4 @@
+include:
+  - project: 'snapp-supply/devops/gitlab-ci-files'
+    file:
+      - 'samples/general-build.yml'
