@@ -8,9 +8,9 @@ ARGOCD_URL = os.getenv("ARGOCD_URL")
 
 
 def refresh_app():
-    os.system(f"argocd login --username {ARGOCD_USERNAME} --password {ARGOCD_PASSWORD} --grpc-web {ARGOCD_URL} --grpc-web-root-path /grpc-api")
+    os.system(f"argocd login --username {ARGOCD_USERNAME} --password {ARGOCD_PASSWORD} --grpc-web {ARGOCD_URL} --grpc-web-root-path /grpc-api --config /app/config")
     
     # Refresh order app
-    os.system("argocd app get staging-order --refresh")
+    os.system("argocd --config /app/config app get staging-order --refresh")
     # Refresh legacy app
-    os.system("argocd app get staging-legacy --refresh")
+    os.system("argocd --config /app/config app get staging-legacy --refresh")
