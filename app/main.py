@@ -11,8 +11,7 @@ app.include_router(lock.router)
 
 templates = Jinja2Templates(directory="app/templates")
 
-#base_url = os.getenv("BASE_URL")
-base_url = "utils.snapp.supply"
+base_url = os.getenv("BASE_URL")
 
 @app.get("/", response_class=HTMLResponse)
 async def form(request: Request):
