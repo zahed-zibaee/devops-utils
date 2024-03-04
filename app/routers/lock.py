@@ -1,4 +1,5 @@
 from fastapi import Body, status, Response, APIRouter
+from fastapi.responses import JSONResponse
 import ast
 from gitlab import Gitlab
 import re
@@ -65,6 +66,14 @@ async def receive_days(response: Response, input: str = Body(...)):
     
     response.status_code = status.HTTP_200_OK
     return response
+
+
+@router.get("/lock-time")
+async def get_lock_time(response: Response):
+    locked_time = await locked_days()
+    return JSONResponse({"locked_time": locked_time})
+
+
 
 
 async def locked_days():

@@ -152,7 +152,23 @@
 
             hideLoading(); // Hide loading indicator
 
-            // ... (existing response handling code)
+            if (response.ok) {
+                successMessage.textContent = "Successfully changed lock time.";
+                successMessage.classList.add("success-message");
+                successMessage.style.color = "green";
+            
+                // Update the `locked_time` variable with a new fetch request
+                fetch("https://{{ base_url }}/lock-time") // Replace with your endpoint for getting lock time
+                    .then(response => response.json())
+                    .then(data => {
+                        document.querySelector(".locked-time").textContent = `Current locked time: ${data.locked_time}`;
+                    })
+                    .catch(error => console.error("Error fetching current lock time:", error));
+            } else {
+                successMessage.textContent = `Error: ${response.statusText}`;
+                successMessage.classList.remove("success-message"); 
+                successMessage.style.color = "red"; 
+    }
         });
 
         function showLoading() {
