@@ -1,5 +1,4 @@
-from fastapi import Body, Request, status, Response, APIRouter
-from fastapi.responses import JSONResponse
+from fastapi import Body, status, Response, APIRouter
 import ast
 from gitlab import Gitlab
 import re
@@ -46,9 +45,10 @@ async def receive_days(response: Response, input: str = Body(...)):
 
         legacy = project.files.get(file_path=f"{LEGACY_FILE_PATH}", ref='main')
         data = legacy.decode()
-        new_legacy_decode = re.sub(rb'(?m)^  - name: VALID_ORDER_UPDATE_TIME_IN_DAYS\n    value: (\d+)\n', rf'  - name: VALID_ORDER_UPDATE_TIME_IN_DAYS\n    value: {number}\n'.encode(), data)
-        new_legacy_decode = str(new_legacy_decode, encoding="utf-8")
-        legacy.content = new_legacy_decode
+        new_legacy_content = re.sub(rb'(?m)^  - name: VALID_ORDER_UPDATE_TIME_IN_DAYS\n    value: (\d+)\n', rf'  - name: VALID_ORDER_UPDATE_TIME_IN_DAYS\n    value: {number}\n'.encode(), data)
+
+        new_legacy_content = str(new_legacy_content, encoding="utf-8")
+        legacy.content = new_legacy_content
         legacy.save(branch="main", commit_message="Update values-staging.yaml")
     except Exception as e:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
