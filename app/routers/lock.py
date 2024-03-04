@@ -12,7 +12,7 @@ GITLAB_ACCESS_TOKEN = os.getenv("GITLAB_ACCESS_TOKEN")
 ORDER_FILE_PATH = os.getenv("ORDER_FILE_PATH")
 LEGACY_FILE_PATH = os.getenv("LEGACY_FILE_PATH")
 GITLAB_PROJECT_ID = os.getenv("GITLAB_PROJECT_ID")
-
+COMMIT_MESSAGE = os.getenv("COMMIT_MESSAGE")
 
 
 router = APIRouter()
@@ -41,7 +41,7 @@ async def receive_days(response: Response, input: str = Body(...)):
 
         new_order_content = str(new_order_content, encoding="utf-8")
         order.content = new_order_content
-        order.save(branch="main", commit_message='Update values-staging.yaml')
+        order.save(branch="main", commit_message=f'{COMMIT_MESSAGE}')
 
         legacy = project.files.get(file_path=f"{LEGACY_FILE_PATH}", ref='main')
         data = legacy.decode()
@@ -49,7 +49,7 @@ async def receive_days(response: Response, input: str = Body(...)):
 
         new_legacy_content = str(new_legacy_content, encoding="utf-8")
         legacy.content = new_legacy_content
-        legacy.save(branch="main", commit_message="Update values-staging.yaml")
+        legacy.save(branch="main", commit_message=f'{COMMIT_MESSAGE}')
     except Exception as e:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         raise e
