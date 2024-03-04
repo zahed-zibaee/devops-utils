@@ -11,7 +11,7 @@ app.include_router(lock.router)
 
 templates = Jinja2Templates(directory="app/templates")
 
-def https_url_for(request: Request, name: str, **path_params: Any) -> str:
+def https_url_for(request: Request, name: str, **path_params) -> str:
 
     http_url = request.url_for(name, **path_params)
 
