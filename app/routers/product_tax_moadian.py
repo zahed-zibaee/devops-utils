@@ -96,7 +96,7 @@ async def update_products(file: UploadFile = File(...), db_write: Session = Depe
             for row in dic_chunk:
                 if row["tax_rate"] is not None:
                     if row["tax_rate"] > 100 or row["tax_rate"] < 0:
-                        return HTTPException(status_code=404, detail="Data problem - id={_id} - tax rate={tax_rate}".format(_id = row["id"], tax_rate = row["tax_rate"]))
+                        return HTTPException(status_code=422, detail="Data problem - id={_id} - tax rate={tax_rate}".format(_id = row["id"], tax_rate = row["tax_rate"]))
                 try:
                     product = db_read.query(Product).filter(Product.id == row["id"]).first()
                 except:
@@ -107,7 +107,7 @@ async def update_products(file: UploadFile = File(...), db_write: Session = Depe
                 
         for chunk in pd.read_csv(file.file, chunksize=1000, iterator=True):
             if "ID" not in chunk.columns or "Tax Rate" not in chunk.columns or "Moadian Product ID" not in chunk.columns :
-                return HTTPException(status_code=404, detail=f"Bad CSV file - check csv columns") 
+                return HTTPException(status_code=422, detail=f"Bad CSV file - check csv columns") 
             my_chunck=[]
             try:
                 for _, row in chunk.iterrows():
