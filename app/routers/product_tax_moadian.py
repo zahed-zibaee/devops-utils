@@ -65,7 +65,7 @@ def get_db_read():
     finally:
         db.close()
 
-@router.get("/devops-tools/products/tax_and_moadian/list")
+@router.get("/devops-utils/v1/products/tax_and_moadian/list")
 async def get_products(id: int = None, limit: int = Query(default=100, le=100), offset: int = 0 ,db: Session = Depends(get_db_read), request: Request = None):
     try:
         if id:
@@ -77,7 +77,7 @@ async def get_products(id: int = None, limit: int = Query(default=100, le=100), 
     products_list = [{'id': p.id, 'name': p.name, 'tax_rate': None if p.tax_rate is None else p.tax_rate, 'moadian_product_id': p.moadian_product_id, "status": "Online" if p.status == 0 else "Offline"} for p in products]
     return products_list
 
-@router.post("/devops-tools/products/tax_and_moadian/import_csv")
+@router.post("/devops-utils/v1/products/tax_and_moadian/import_csv")
 async def update_products(file: UploadFile = File(...), db_write: Session = Depends(get_db_write), db_read: Session = Depends(get_db_read)):
     """
     Uploads a CSV file and updates data in the 'products' table based on 'id'.
