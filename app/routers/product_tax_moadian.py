@@ -1,59 +1,36 @@
+
+from fastapi import APIRouter, Depends, File, UploadFile, HTTPException, Request
+from fastapi.templating import Jinja2Templates
+from sqlalchemy import text, or_, and_, func
+from sqlalchemy.orm import Session
+
 import pandas as pd
 
-from fastapi import APIRouter, Depends, Request, File, UploadFile, HTTPException, Query
-from fastapi.templating import Jinja2Templates
-from sqlalchemy import create_engine, Column, Integer, String, Boolean, text
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
+from app.schemas.main import GetProducts, Product
+from app.core.logging import logger
+from app.core.db import get_db_mysql_write, get_db_mysql_read
 
-
-import os
-
-
-# MYSQL WRITE config
-DB_MYSQL_WRITE_HOST = os.getenv("DB_MYSQL_WRITE_HOST")
-DB_MYSQL_WRITE_DATABASE = os.getenv("DB_MYSQL_WRITE_DATABASE")
-DB_MYSQL_WRITE_USERNAME = os.getenv("DB_MYSQL_WRITE_USERNAME")
-DB_MYSQL_WRITE_PASSWORD = os.getenv("DB_MYSQL_WRITE_PASSWORD")
-DB_MYSQL_WRITE_PORT = os.getenv("DB_MYSQL_WRITE_PORT")
-# MYSQL READ config
-DB_MYSQL_READ_HOST = os.getenv("DB_MYSQL_READ_HOST")
-DB_MYSQL_READ_DATABASE = os.getenv("DB_MYSQL_READ_DATABASE")
-DB_MYSQL_READ_USERNAME = os.getenv("DB_MYSQL_READ_USERNAME")
-DB_MYSQL_READ_PASSWORD = os.getenv("DB_MYSQL_READ_PASSWORD")
-DB_MYSQL_READ_PORT = os.getenv("DB_MYSQL_READ_PORT")
 
 router = APIRouter()
-base = declarative_base()
 templates = Jinja2Templates(directory="app/templates")
 
+@router.get("/devops-tools/v1/products/tax_and_moadian/list")
+async def get_products(params: GetProducts = Depends() ,db: Session = Depends(get_db_mysql_read)):
+    """
+    Retrieves a list of products from the database with optional filtering by product ID.
 
+    Args:
+        id (int, optional): The ID of the specific product to retrieve.
+        limit (int, optional): The maximum number of products to return. Defaults to 100, must be <= 100.
+        offset (int, optional): The number of products to skip before starting to collect the result set. Defaults to 0.
+        db (Session): A database session dependency for querying the database.
+
+    Returns:
+        List[Dict]: A list of products with each product's details.
+    """
     
-class Product(base):
-    __tablename__ = "products"
-
-    id = Column(Integer, primary_key=True)
-    name = Column(String)
-    tax_rate = Column(Integer)
-    moadian_product_id = Column(String)
-    status = Column(Boolean)
-    state = Column(Boolean)
-    
-    def get_table_name(self):
-        return self.__tablename__
-
-engine_write = create_engine(
-    url = f"mysql://{DB_MYSQL_WRITE_USERNAME}:{DB_MYSQL_WRITE_PASSWORD}@{DB_MYSQL_WRITE_HOST}:{DB_MYSQL_WRITE_PORT}/{DB_MYSQL_WRITE_DATABASE}",
-    )
-engine_read = create_engine(
-    url = f"mysql://{DB_MYSQL_READ_USERNAME}:{DB_MYSQL_READ_PASSWORD}@{DB_MYSQL_READ_HOST}:{DB_MYSQL_READ_PORT}/{DB_MYSQL_READ_DATABASE}",
-    )
-SessionLocal_write = sessionmaker(autocommit=False, autoflush=False, bind=engine_write)
-SessionLocal_read = sessionmaker(autocommit=False, autoflush=False, bind=engine_read)
-        
-def get_db_write():
-    db = SessionLocal_write()
     try:
+<<<<<<< HEAD
         yield db
     finally:
         db.close()
@@ -70,15 +47,36 @@ async def get_products(id: int = None, limit: int = Query(default=100, le=100), 
     try:
         if id:
             products = db.query(Product).filter(Product.status == 0, Product.id == id).limit(limit).offset(offset).all()
+=======
+        total_not_filtered = db.query(func.count(Product.id)).filter(Product.status == 0).scalar()
+        if params.search:
+            search_filter = and_(
+                or_(
+                    Product.id == params.search,
+                    Product.name.ilike(f"%{params.search}%"),
+                ), 
+                Product.status == 0
+            )
+            products = db.query(Product).filter(search_filter).limit(params.limit).offset(params.offset).all()
+            total = db.query(func.count(Product.id)).filter(search_filter).scalar()
+>>>>>>> 8e03176 (massive changes)
         else:
-            products = db.query(Product).filter(Product.status == 0).limit(limit).offset(offset).all()
+            products = db.query(Product).filter(Product.status == 0).limit(params.limit).offset(params.offset).all()
+            total = total_not_filtered        
     except Exception as e:
-        return HTTPException("500", 'Can not get product list from database: %s' % e)
-    products_list = [{'id': p.id, 'name': p.name, 'tax_rate': None if p.tax_rate is None else p.tax_rate, 'moadian_product_id': p.moadian_product_id, "status": "Online" if p.status == 0 else "Offline"} for p in products]
-    return products_list
+        logger.error('Can not get product list from database: %s' % e)
+        return HTTPException("500", 'Can not get product list from database.')
+    products_list = [{'id': p.id, 'name': p.name, 'tax_rate': 'Not Defined' if p.tax_rate is None else p.tax_rate, 'moadian_product_id': p.moadian_product_id, "state": "Online" if p.state == 0 else "Offline"} for p in products]
+    logger.info(f'get product list: {str(products_list[:5])} ...')
+    return {"rows": products_list, "total": total, "totalNotFiltered": total_not_filtered}
 
+<<<<<<< HEAD
 @router.post("/devops-utils/v1/products/tax-and-moadian/import-csv")
 async def update_products(file: UploadFile = File(...), db_write: Session = Depends(get_db_write), db_read: Session = Depends(get_db_read)):
+=======
+@router.post("/devops-tools/v1/products/tax_and_moadian/import_csv")
+async def update_products(file: UploadFile = File(...), db_write: Session = Depends(get_db_mysql_write), db_read: Session = Depends(get_db_mysql_read)):
+>>>>>>> 8e03176 (massive changes)
     """
     Uploads a CSV file and updates data in the 'products' table based on 'id'.
 
@@ -107,11 +105,16 @@ async def update_products(file: UploadFile = File(...), db_write: Session = Depe
                 
         for chunk in pd.read_csv(file.file, chunksize=1000, iterator=True):
             if "ID" not in chunk.columns or "Tax Rate" not in chunk.columns or "Moadian Product ID" not in chunk.columns :
+<<<<<<< HEAD
                 return HTTPException(status_code=422, detail=f"Bad CSV file - check csv columns") 
             my_chunck=[]
+=======
+                return HTTPException(status_code=404, detail=f"Bad CSV file - check csv columns") 
+            my_chunck = []
+>>>>>>> 8e03176 (massive changes)
             try:
                 for _, row in chunk.iterrows():
-                    if row["Tax Rate"] != row["Tax Rate"]:
+                    if row["Tax Rate"] == "Not Defined":
                         tax_rate = None
                     else:
                         tax_rate = int(row["Tax Rate"])
@@ -131,4 +134,13 @@ async def update_products(file: UploadFile = File(...), db_write: Session = Depe
         return 200, "CSV data successfully processed for updates in 'products' table."
 
     except Exception as e:
+        logger.error("Error occurred during update process. Please check the server logs. error:" + e)
         return HTTPException(status_code=500, detail="Error occurred during update process. Please check the server logs.")
+
+@router.get("/devops-tools-front/v1/products/tax_and_moadian")
+async def get_products_temp(request: Request):
+    return templates.TemplateResponse("product_list/index.html", {
+        "request": request, 
+        "title": "Products", 
+        "description": "Product list/import for tax rate and moadian samane ID.",
+        })

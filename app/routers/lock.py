@@ -7,7 +7,6 @@ import os
 from .argocd import refresh_app
 
 
-
 GITLAB_URL = os.getenv("GITLAB_URL")
 GITLAB_ACCESS_TOKEN = os.getenv("GITLAB_ACCESS_TOKEN")
 ORDER_FILE_PATH = os.getenv("ORDER_FILE_PATH")
@@ -19,12 +18,10 @@ COMMIT_MESSAGE = os.getenv("COMMIT_MESSAGE")
 router = APIRouter()
 
 
-
 def receive_gitlab_data():
     gitlab = Gitlab(f"{GITLAB_URL}", private_token=f"{GITLAB_ACCESS_TOKEN}")
     project = gitlab.projects.get(int(GITLAB_PROJECT_ID))
     return project
-
 
 
 @router.post("/lock")
@@ -61,9 +58,6 @@ async def receive_days(response: Response, input: str = Body(...)):
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         raise e
     
-
-    
-    
     response.status_code = status.HTTP_200_OK
     return response
 
@@ -72,8 +66,6 @@ async def receive_days(response: Response, input: str = Body(...)):
 async def get_lock_time(response: Response):
     locked_time = await locked_days()
     return JSONResponse({"locked_time": locked_time})
-
-
 
 
 async def locked_days():

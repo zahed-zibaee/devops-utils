@@ -1,0 +1,53 @@
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('loadOverlay').style.display = 'none';
+    });
+</script>
+<div id="loadOverlay" style="
+    display: flex;
+    background-color:#f1f1f1;
+    filter: alpha(opacity=85);
+    -moz-opacity: 0.85;
+    opacity: 0.85;
+    position: fixed; 
+    top: 0px; 
+    left: 0px; 
+    width:100%; 
+    height:100%; 
+    z-index:2000;
+    font-family: var(--bs-font-sans-serif);
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #212529;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    box-sizing: border-box;
+    flex-direction: column!important;
+    justify-content: center!important;
+    align-items: center!important;
+    ">
+<h3 >Loading...</h3>
+<div style="
+    font-family: var(--bs-font-sans-serif);
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    box-sizing: border-box;
+    display: inline-block;
+    width: 2rem;
+    height: 2rem;
+    vertical-align: -.125em;
+    border: .25em solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: .75s linear infinite spinner-border;
+    color: #ffc107!important;
+    filter: alpha(opacity=100);
+    -moz-opacity: 100;
+    opacity: 100;
+    ">
+</div>
+</div>
