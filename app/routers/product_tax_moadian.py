@@ -30,24 +30,6 @@ async def get_products(params: GetProducts = Depends() ,db: Session = Depends(ge
     """
     
     try:
-<<<<<<< HEAD
-        yield db
-    finally:
-        db.close()
-
-def get_db_read():
-    db = SessionLocal_read()
-    try:
-        yield db
-    finally:
-        db.close()
-
-@router.get("/devops-utils/v1/products/tax-and-moadian/list")
-async def get_products(id: int = None, limit: int = Query(default=100, le=100), offset: int = 0 ,db: Session = Depends(get_db_read), request: Request = None):
-    try:
-        if id:
-            products = db.query(Product).filter(Product.status == 0, Product.id == id).limit(limit).offset(offset).all()
-=======
         total_not_filtered = db.query(func.count(Product.id)).filter(Product.status == 0).scalar()
         if params.search:
             search_filter = and_(
@@ -59,7 +41,6 @@ async def get_products(id: int = None, limit: int = Query(default=100, le=100), 
             )
             products = db.query(Product).filter(search_filter).limit(params.limit).offset(params.offset).all()
             total = db.query(func.count(Product.id)).filter(search_filter).scalar()
->>>>>>> 8e03176 (massive changes)
         else:
             products = db.query(Product).filter(Product.status == 0).limit(params.limit).offset(params.offset).all()
             total = total_not_filtered        
@@ -70,13 +51,8 @@ async def get_products(id: int = None, limit: int = Query(default=100, le=100), 
     logger.info(f'get product list: {str(products_list[:5])} ...')
     return {"rows": products_list, "total": total, "totalNotFiltered": total_not_filtered}
 
-<<<<<<< HEAD
-@router.post("/devops-utils/v1/products/tax-and-moadian/import-csv")
-async def update_products(file: UploadFile = File(...), db_write: Session = Depends(get_db_write), db_read: Session = Depends(get_db_read)):
-=======
 @router.post("/devops-tools/v1/products/tax_and_moadian/import_csv")
 async def update_products(file: UploadFile = File(...), db_write: Session = Depends(get_db_mysql_write), db_read: Session = Depends(get_db_mysql_read)):
->>>>>>> 8e03176 (massive changes)
     """
     Uploads a CSV file and updates data in the 'products' table based on 'id'.
 
@@ -105,13 +81,8 @@ async def update_products(file: UploadFile = File(...), db_write: Session = Depe
                 
         for chunk in pd.read_csv(file.file, chunksize=1000, iterator=True):
             if "ID" not in chunk.columns or "Tax Rate" not in chunk.columns or "Moadian Product ID" not in chunk.columns :
-<<<<<<< HEAD
-                return HTTPException(status_code=422, detail=f"Bad CSV file - check csv columns") 
-            my_chunck=[]
-=======
                 return HTTPException(status_code=404, detail=f"Bad CSV file - check csv columns") 
             my_chunck = []
->>>>>>> 8e03176 (massive changes)
             try:
                 for _, row in chunk.iterrows():
                     if row["Tax Rate"] == "Not Defined":
