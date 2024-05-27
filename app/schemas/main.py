@@ -8,7 +8,7 @@ Base = declarative_base()
 
 class GetProducts(BaseModel):
     search: Optional[str] = None
-    limit: Optional[int] = Query(default=10, ge=1, le=200)
+    limit: Optional[int] = Query(default=10, ge=1)
     offset: Optional[int] = Query(default=0, ge=0)
     
 class Product(Base):
