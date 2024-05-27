@@ -100,9 +100,10 @@ function initTable() {
 window.addEventListener('message', function(event) {
     if(!!event.data) {
         hostname = event.data.hostname;
+        console.log("Hostname received from the parent: " + hostname)
         token = event.data.token;
     }
-    console.log("Message received from the parent: " + JSON.parse(event.data));
+    console.log("Message received from the parent: " + event.data);
 });
 
 function ajaxRequest(params) {
