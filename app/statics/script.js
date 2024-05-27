@@ -5,7 +5,7 @@ const toastLiveExample = document.getElementById('toast');
 
 function prepend_url(url) {
     const hostname = window.location.hostname;
-    const notlocal = hostname === 'bo.snapp.supply' && hostname === 'staging-bo.snapp.supply';
+    const notlocal = hostname === 'bo.snapp.supply' || hostname === 'staging-bo.snapp.supply';
     if (notlocal) {
         return "/api-bo" + url
     } else {
