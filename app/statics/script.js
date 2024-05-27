@@ -3,9 +3,11 @@ const csvFile = document.getElementById('csv-file');
 const uploadButton = document.getElementById('upload-button');
 const toastLiveExample = document.getElementById('toast');
 
+var token = "";
+var hostname = "";
+
 function prepend_url(url) {
-    const hostname = window.location.hostname;
-    const notlocal = hostname === 'bo.snapp.supply' || hostname === 'staging-bo.snapp.supply';
+    const notlocal = hostname.includes('bo.snapp.supply')
     if (notlocal) {
         return "/api-bo" + url
     } else {
@@ -27,7 +29,7 @@ function createToast(message, severity, delay = 5000) {
         toastClone.querySelector('.alert').classList.add("alert-danger");
         toastClone.querySelector('.svg-icon').classList.add('bi-exclamation-triangle-fill');
     } else if (severity == 'success') {
-        toastClone.querySelector('.alert').classList.add("alert-success"); 
+        toastClone.querySelector('.alert').classList.add("alert-success");
         toastClone.querySelector('.svg-icon').classList.add('bi-check-circle-fill');
     } else {
         return -1;
@@ -75,7 +77,7 @@ uploadButton.addEventListener('click', () => {
     }
     })
     .catch(error => {
-        createToast('Can not import CSV file check console logs.', "error");    
+        createToast('Can not import CSV file check console logs.', "error");
         $("#upload-button").prop('disabled', false);
         console.error(error);
     });
@@ -95,14 +97,16 @@ function initTable() {
   });
 }
 
-var token = "";
 window.addEventListener('message', function(event) {
-    token = event.data;
-    console.log("Message received from the parent: " + event.data);
+    if(!!event.data) {
+        hostname = event.data.hostname;
+        token = event.data.token;
+    }
+    console.log("Message received from the parent: " + JSON.parse(event.data));
 });
 
 function ajaxRequest(params) {
-    var url = '/devops-tools/v1/products/tax_and_moadian/list'
+    const url = prepend_url('/devops-tools/v1/products/tax_and_moadian/list')
     $.get(url + '?' + $.param(params.data)).then(function (res) {
         params.success(res)
     })
