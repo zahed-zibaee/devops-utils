@@ -108,7 +108,11 @@ window.addEventListener('message', function(event) {
 
 function ajaxRequest(params) {
     const url = prepend_url('/devops-tools/v1/products/tax_and_moadian/list')
-    $.get(url + '?' + $.param(params.data), { headers: { Authorization: token }}).then(function (res) {
+    $.ajax({
+        url: url + '?' + $.param(params.data),
+        type: "GET",
+        headers: { Authorization: token }
+    }).then(function (res) {
         params.success(res)
     })
 }
