@@ -15,7 +15,10 @@ router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 
 @router.get("/devops-tools/v1/products/tax_and_moadian/list")
-async def get_products(params: GetProducts = Depends() ,db: Session = Depends(get_db_mysql_read)):
+async def get_products(
+    params: GetProducts = Depends() ,
+    db: Session = Depends(get_db_mysql_read)
+    ):
     """
     Retrieves a list of products from the database with optional filtering by product ID.
 
@@ -47,12 +50,22 @@ async def get_products(params: GetProducts = Depends() ,db: Session = Depends(ge
     except Exception as e:
         logger.error('Can not get product list from database: %s' % e)
         return HTTPException("500", 'Can not get product list from database.')
-    products_list = [{'id': p.id, 'name': p.name, 'tax_rate': 'Not Defined' if p.tax_rate is None else p.tax_rate, 'moadian_product_id': p.moadian_product_id, "state": "Online" if p.state == 0 else "Offline"} for p in products]
+    products_list = [
+        {'id': p.id, 
+         'name': p.name, 
+         'tax_rate': 'Not Defined' if p.tax_rate is None else p.tax_rate, 
+         'moadian_product_id': p.moadian_product_id, 
+         "state": "Online" if p.state == 0 else "Offline"
+        } for p in products]
     logger.info(f'get product list: {str(products_list[:5])} ...')
     return {"rows": products_list, "total": total, "totalNotFiltered": total_not_filtered}
 
 @router.post("/devops-tools/v1/products/tax_and_moadian/import_csv")
-async def update_products(file: UploadFile = File(...), db_write: Session = Depends(get_db_mysql_write), db_read: Session = Depends(get_db_mysql_read)):
+async def update_products(
+    file: UploadFile = File(...), 
+    db_write: Session = Depends(get_db_mysql_write), 
+    db_read: Session = Depends(get_db_mysql_read)
+    ):
     """
     Uploads a CSV file and updates data in the 'products' table based on 'id'.
 
@@ -70,7 +83,13 @@ async def update_products(file: UploadFile = File(...), db_write: Session = Depe
             for row in dic_chunk:
                 if row["tax_rate"] is not None:
                     if row["tax_rate"] > 100 or row["tax_rate"] < 0:
-                        return HTTPException(status_code=422, detail="Data problem - id={_id} - tax rate={tax_rate}".format(_id = row["id"], tax_rate = row["tax_rate"]))
+                        return HTTPException(
+                            status_code=422, 
+                            detail="Data problem - id={_id} - tax rate={tax_rate}".format(
+                                _id = row["id"], 
+                                tax_rate = row["tax_rate"]
+                            )
+                        )
                 try:
                     product = db_read.query(Product).filter(Product.id == row["id"]).first()
                 except:
@@ -81,7 +100,10 @@ async def update_products(file: UploadFile = File(...), db_write: Session = Depe
                 
         for chunk in pd.read_csv(file.file, chunksize=1000, iterator=True):
             if "ID" not in chunk.columns or "Tax Rate" not in chunk.columns or "Moadian Product ID" not in chunk.columns :
-                return HTTPException(status_code=404, detail=f"Bad CSV file - check csv columns") 
+                return HTTPException(
+                    status_code=404, 
+                    detail=f"Bad CSV file - check csv columns"
+                ) 
             my_chunck = []
             try:
                 for _, row in chunk.iterrows():
@@ -93,12 +115,16 @@ async def update_products(file: UploadFile = File(...), db_write: Session = Depe
                         moadian_product_id = ""
                     else:
                         moadian_product_id = int(row["Moadian Product ID"])
-                    my_chunck.append({"id": int(row["ID"]), "tax_rate": tax_rate, "moadian_product_id": moadian_product_id})
+                    my_chunck.append(
+                        {"id": int(row["ID"]), "tax_rate": tax_rate, "moadian_product_id": moadian_product_id}
+                    )
             except Exception as e:
                 return HTTPException(status_code=422, detail=f"Bad CSV file: {e}")
             update_data(my_chunck)
             
-        db_write.execute(text(f"UPDATE {Product().get_table_name()} SET tax_rate = Null, moadian_product_id= \"\";"))
+        db_write.execute(text(
+            f"UPDATE {Product().get_table_name()} SET tax_rate = Null, moadian_product_id= \"\";"
+            ))
         db_write.bulk_save_objects(updated_products)
         db_write.commit()
         
@@ -106,7 +132,10 @@ async def update_products(file: UploadFile = File(...), db_write: Session = Depe
 
     except Exception as e:
         logger.error("Error occurred during update process. Please check the server logs. error:" + e)
-        return HTTPException(status_code=500, detail="Error occurred during update process. Please check the server logs.")
+        return HTTPException(
+            status_code=500, 
+            detail="Error occurred during update process. Please check the server logs."
+            )
 
 @router.get("/devops-tools-front/v1/products/tax_and_moadian")
 async def get_products_temp(request: Request):

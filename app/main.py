@@ -22,6 +22,6 @@ app = get_application()
 #)
 
 #app.include_router(lock.router)
-app.mount("/static", StaticFiles(directory="app/statics"), name="static")
+app.mount("/devops-tools-front/static", StaticFiles(directory="app/statics"), name="static")
 app.include_router(product_tax_moadian.router)
 app.include_router(prometheus.router)
