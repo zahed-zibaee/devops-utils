@@ -117,8 +117,11 @@ function ajaxRequest(params) {
     })
 }
 
-setTimeout(function(){
-	initTable();
+$(function () {
+    initTable();
     $("#locale").change(initTable);
-}, 2100) 
+});
 
+setTimeout(function(){
+	$table.bootstrapTable('refresh');
+}, 2100) 
