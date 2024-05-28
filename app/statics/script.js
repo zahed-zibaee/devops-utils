@@ -102,6 +102,7 @@ window.addEventListener('message', function(event) {
         hostname = event.data.hostname;
         console.log("Hostname received from the parent: " + hostname)
         token = event.data.token;
+        $table.bootstrapTable('refresh');
     }
     console.log("Message received from the parent: " + event.data);
 });
@@ -121,7 +122,3 @@ $(function () {
     initTable();
     $("#locale").change(initTable);
 });
-
-setTimeout(function(){
-	$table.bootstrapTable('refresh');
-}, 2100) 
