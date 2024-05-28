@@ -7,7 +7,7 @@ var token = "";
 var hostname = "";
 
 function prepend_url(url) {
-    const notlocal = hostname.includes('bo.snapp.supply')
+    const notlocal = hostname === 'bo.snapp.supply' || hostname === 'staging-bo.snapp.supply';
     if (notlocal) {
         return "/api-bo" + url
     } else {
@@ -97,13 +97,12 @@ function initTable() {
   });
 }
 
+var hostname = "";
+var token = "";
 window.addEventListener('message', function(event) {
-    if(!!event.data) {
-        hostname = event.data.hostname;
-        console.log("Hostname received from the parent: " + hostname)
-        token = event.data.token;
-    }
-    console.log("Message received from the parent: " + event.data);
+    token = event.data.token;
+    hostname = event.data.token;
+    console.log("Message received from the parent.");
 });
 
 function ajaxRequest(params) {
