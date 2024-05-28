@@ -49,7 +49,7 @@ async def get_products(
             total = total_not_filtered        
     except Exception as e:
         logger.error('Can not get product list from database: %s' % e)
-        return HTTPException("500", 'Can not get product list from database.')
+        raise HTTPException("500", 'Can not get product list from database.')
     products_list = [
         {'id': p.id, 
          'name': p.name, 
@@ -83,7 +83,7 @@ async def update_products(
             for row in dic_chunk:
                 if row["tax_rate"] is not None:
                     if row["tax_rate"] > 100 or row["tax_rate"] < 0:
-                        return HTTPException(
+                        raise HTTPException(
                             status_code=422, 
                             detail="Data problem - id={_id} - tax rate={tax_rate}".format(
                                 _id = row["id"], 
@@ -93,14 +93,14 @@ async def update_products(
                 try:
                     product = db_read.query(Product).filter(Product.id == row["id"]).first()
                 except:
-                    return HTTPException(status_code=404, detail="Product not found - id={_id}".format(_id=row["id"]))
+                    raise HTTPException(status_code=404, detail="Product not found - id={_id}".format(_id=row["id"]))
                 product.tax_rate = row["tax_rate"]
                 product.moadian_product_id = row["moadian_product_id"]
                 updated_products.append(product)                    
                 
         for chunk in pd.read_csv(file.file, chunksize=1000, iterator=True):
             if "ID" not in chunk.columns or "Tax Rate" not in chunk.columns or "Moadian Product ID" not in chunk.columns :
-                return HTTPException(
+                raise HTTPException(
                     status_code=404, 
                     detail=f"Bad CSV file - check csv columns"
                 ) 
@@ -119,7 +119,7 @@ async def update_products(
                         {"id": int(row["ID"]), "tax_rate": tax_rate, "moadian_product_id": moadian_product_id}
                     )
             except Exception as e:
-                return HTTPException(status_code=422, detail=f"Bad CSV file: {e}")
+                raise HTTPException(status_code=422, detail=f"Bad CSV file: {e}")
             update_data(my_chunck)
             
         db_write.execute(text(
@@ -132,7 +132,7 @@ async def update_products(
 
     except Exception as e:
         logger.error("Error occurred during update process. Please check the server logs. error:" + e)
-        return HTTPException(
+        raise HTTPException(
             status_code=500, 
             detail="Error occurred during update process. Please check the server logs."
             )
