@@ -17,5 +17,7 @@ class Settings(BaseSettings):
     DB_MYSQL_READ_USERNAME: str = 'root'
     DB_MYSQL_READ_PORT: str = '3306'
     DB_MYSQL_READ_PASSWORD: str = ''    
+    # Toggle Feature
+    DISABLED_FEATURES: list = []  
 
 settings = Settings()

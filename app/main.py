@@ -1,12 +1,9 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-#from fastapi.security import HTTPBasic
 
 from app.core.config import settings
-from app.routers import lock, product_tax_moadian, prometheus, routes
+from app.core.toggle_feature import get_active_features
 from app.core.middleware import LoggingMiddleware
-
-#security = HTTPBasic()
 
 def get_application():
     _app = FastAPI(
@@ -17,12 +14,11 @@ def get_application():
     return _app
 
 app = get_application()
-#app.middleware('http')(
-#    LoggingMiddleware()
-#)
+app.middleware('http')(
+    LoggingMiddleware()
+)
 
-#app.include_router(lock.router)
 app.mount("/devops-tools-front/static", StaticFiles(directory="app/statics"), name="static")
-app.include_router(routes.router)
-app.include_router(product_tax_moadian.router)
-app.include_router(prometheus.router)
+
+for feature in get_active_features():
+    app.include_router(feature.router)

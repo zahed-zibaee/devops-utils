@@ -137,8 +137,8 @@ async def update_products(
             )
 
 @router.get("/devops-tools-front/v1/products/tax_and_moadian")
-async def get_products_temp(request: Request):
-    return templates.TemplateResponse("product_list/index.html", {
+async def get_products_component(request: Request):
+    return templates.TemplateResponse("components/product_tax_and_moadian_id_list/index.html", {
         "request": request, 
         "title": "Products", 
         "description": "Product list/import for tax rate and moadian samane ID.",
