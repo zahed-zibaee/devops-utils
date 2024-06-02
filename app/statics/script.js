@@ -47,11 +47,11 @@ function createToast(message, severity, delay = 5000) {
 }
 
 uploadButton.addEventListener('click', () => {
-    $("#upload-button").prop('disabled', true);
+    $("#upload-button-product-tax-and-moadian-csv").prop('disabled', true);
     var file = csvFile.files[0];
     if (!file) {
         createToast('No csv file selected!', "warning");
-        $("#upload-button").prop('disabled', false);
+        $("#upload-button-product-tax-and-moadian-csv").prop('disabled', false);
         return -1
     }
     var formData = new FormData();
@@ -68,17 +68,17 @@ uploadButton.addEventListener('click', () => {
     if (response.ok) {
         createToast('Product CSV file imported.', "success");
         console.log(response);
-        $("#upload-button").prop('disabled', false);
+        $("#upload-button-product-tax-and-moadian-csv").prop('disabled', false);
         $table.bootstrapTable('refresh')
     } else {
         createToast('Can not import CSV file check console logs.', "error");
-        $("#upload-button").prop('disabled', false);
+        $("#upload-button-product-tax-and-moadian-csv").prop('disabled', false);
         console.error(response);
     }
     })
     .catch(error => {
         createToast('Can not import CSV file check console logs.', "error");
-        $("#upload-button").prop('disabled', false);
+        $("#upload-button-product-tax-and-moadian-csv").prop('disabled', false);
         console.error(error);
     });
 });
@@ -97,24 +97,28 @@ function initTable() {
   });
 }
 
-window.addEventListener('message', function(event) {
-    if(!!event.data) {
-        hostname = event.data.hostname;
-        console.log("Hostname received from the parent: " + hostname)
-        token = event.data.token;
-        $table.bootstrapTable('refresh');
-    }
-    console.log("Message received from the parent: " + event.data);
-});
-
-function ajaxRequest(params) {
+function ajaxRequestProductTaxMoadian(params) {
     const url = prepend_url('/devops-tools/v1/products/tax_and_moadian/list')
     $.ajax({
         url: url + '?' + $.param(params.data),
         type: "GET",
         headers: { Authorization: token }
     }).then(function (res) {
+        console.log(res);
         params.success(res)
+    })
+}
+
+function ajaxRequestGetOrderLock() {
+    const url = prepend_url('/devops-tools/v1/order/lock')
+    $.ajax({
+        url: url,
+        type: "GET",
+        headers: { Authorization: token }
+    }).then(function (res) {
+        console.log(res);
+        const orderLock = document.getElementById('order-lock');
+        orderLock.textContent = res.lock;
     })
 }
 

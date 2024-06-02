@@ -19,5 +19,19 @@ class Settings(BaseSettings):
     DB_MYSQL_READ_PASSWORD: str = ''    
     # Toggle Feature
     DISABLED_FEATURES: list = []  
-
+    # Argocd
+    ARGOCD_USERNAME: str = ''
+    ARGOCD_PASSWORD: str = ''
+    ARGOCD_URL: str = ''
+    # Gitlab
+    GITLAB_URL: str = ''
+    GITLAB_ACCESS_TOKEN_MANIFEST: str = ''
+    GITLAB_PROJECT_ID_MANIFEST: int = 1
+    COMMIT_MESSAGE_CHANGE_ORDER_LOCK: str = 'Order lock have been changed by devops utils'
+    # Services
+    ORDER_FILE_PATH_MANIFEST: str = ''
+    LEGACY_FILE_PATH_MANIFEST: str = ''
+    ORDER_ARGOCD_APP_NAME: str = 'order'
+    LEGACY_ARGOCD_APP_NAME: str = 'legacy'
+    
 settings = Settings()

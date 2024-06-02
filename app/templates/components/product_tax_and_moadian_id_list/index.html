@@ -52,7 +52,7 @@
     data-show-columns-search="true"
     data-sortable="false"
     data-side-pagination="server"
-    data-ajax="ajaxRequest"
+    data-ajax="ajaxRequestProductTaxMoadian"
   >
     <thead>
       <tr>
@@ -65,4 +65,15 @@
     </thead>
   </table>
   </div>
+  <script>
+    window.addEventListener('message', function(event) {
+      if(!!event.data) {
+          hostname = event.data.hostname;
+          console.log("Hostname received from the parent: " + hostname)
+          token = event.data.token;
+          $table.bootstrapTable('refresh');
+      }
+      console.log("Message received from the parent: " + event.data);
+    });
+  </script>
 {% endblock %}

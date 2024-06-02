@@ -119,7 +119,7 @@ class JSONLogFormatter(logging.Formatter):
 
 
 def handlers(env, to_file=False):
-    if env.lower() in ('prod', 'dev'):
+    if env.lower() in ('prod', 'staging'):
         handler = ['json']
     else:
         handler = ['intercept']

@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, conint
 from typing import Optional
 from fastapi import Query
 from sqlalchemy import Column, Integer, String, Boolean
@@ -23,3 +23,6 @@ class Product(Base):
     
     def get_table_name(self):
         return self.__tablename__
+
+class EditOrderLock(BaseModel):
+    lock: conint(ge=0, le=10000)

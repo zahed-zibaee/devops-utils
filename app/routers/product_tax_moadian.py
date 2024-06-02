@@ -1,5 +1,4 @@
-from fastapi import APIRouter, Depends, File, UploadFile, HTTPException, Request
-from fastapi.templating import Jinja2Templates
+from fastapi import APIRouter, Depends, File, UploadFile, HTTPException
 from sqlalchemy import text, or_, and_, func
 from sqlalchemy.orm import Session
 
@@ -11,11 +10,10 @@ from app.core.db import get_db_mysql_write, get_db_mysql_read
 
 
 router = APIRouter()
-templates = Jinja2Templates(directory="app/templates")
 
 @router.get("/devops-tools/v1/products/tax_and_moadian/list")
 async def get_products(
-    params: GetProducts = Depends() ,
+    params: GetProducts = Depends(),
     db: Session = Depends(get_db_mysql_read)
     ):
     """
@@ -135,11 +133,3 @@ async def update_products(
             status_code=500, 
             detail="Error occurred during update process. Please check the server logs."
             )
-
-@router.get("/devops-tools-front/v1/products/tax_and_moadian")
-async def get_products_component(request: Request):
-    return templates.TemplateResponse("components/product_tax_and_moadian_id_list/index.html", {
-        "request": request, 
-        "title": "Products", 
-        "description": "Product list/import for tax rate and moadian samane ID.",
-        })
