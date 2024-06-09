@@ -13,7 +13,7 @@ async def get_products_component(request: Request):
         "description": "Product list/import for tax rate and moadian samane ID.",
         })
 
-@router.get("/devops-tools-front/v1/component/app-settings")
+@router.get("/devops-tools-front/v1/component/app_settings")
 async def get_products_component(request: Request):
     return templates.TemplateResponse("components/app-settings/index.html", {
         "request": request, 
