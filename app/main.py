@@ -18,7 +18,7 @@ app.middleware('http')(
     LoggingMiddleware()
 )
 
-@app.get("/health")
+@app.get("/api/v1/healthcheck")
 async def get_health():
     """
     ## Perform a Health Check
