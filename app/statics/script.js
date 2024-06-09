@@ -163,7 +163,9 @@ function ajaxRequestProductTaxMoadian(params) {
     }).then(function (res) {
         console.log(res);
         params.success(res)
-    })
+    }).catch(error => {
+        createToast('Can not get product data.', "error");
+    });
 }
 
 function ajaxRequestGetOrderLock() {
@@ -176,5 +178,7 @@ function ajaxRequestGetOrderLock() {
         console.log(res);
         $('order-lock-in-days').val(res.lock);
         lastOrderLock = res.lock;
-    })
+    }).catch(error => {
+        createToast('Can not get order lock data.', "error");
+    });
 }
