@@ -111,13 +111,12 @@ function uploadProductTaxAndMoadian() {
 function updateSettings() {
     inProgress();
     var orderLock = $("#order-lock-in-days").val();
-    if (!orderLock || orderLock < 0 || orderLock > 1000) {
-        createToast('Need to fill inputs!', "warning");
+    if (orderLock == lastOrderLock) {
         finishedProgress();
         return -1
     }
-    if (orderLock == lastOrderLock) {
-        createToast('Need to change order lock input!', "warning");
+    if (!orderLock || orderLock < 0 || orderLock > 1000) {
+        createToast('Need to fill inputs!', "warning");
         finishedProgress();
         return -1
     }
