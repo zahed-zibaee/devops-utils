@@ -176,7 +176,7 @@ function ajaxRequestGetOrderLock() {
         headers: { Authorization: token }
     }).then(function (res) {
         console.log(res);
-        $('order-lock-in-days').val(res.lock);
+        $('#order-lock-in-days').val(res.lock);
         lastOrderLock = res.lock;
     }).catch(error => {
         createToast('Can not get order lock data.', "error");

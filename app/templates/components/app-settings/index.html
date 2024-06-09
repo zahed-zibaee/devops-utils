@@ -43,7 +43,6 @@
       console.log("Hostname received from the parent: " + hostname);
       token = event.data.token;
       ajaxRequestGetOrderLock();
-      resetSettings();
       $("#loadOverlay").prop("style", "display: none;");
       console.log("Message received from the parent: " + event.data);
     }
