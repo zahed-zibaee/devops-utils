@@ -12,13 +12,13 @@
 </head>
 <body>
     <div id="wrapper">
-    {% include 'base/loading.html' %}
-    {% include 'base/toast.html' %}
-    {% include 'base/header.html' %}
-    <main role="main" class="container">
-        {% block content %}{% endblock %}
-    </main>
-    {% include 'base/footer.html' %}
+        {% include 'base/loading.html' %}
+        {% include 'base/toast.html' %}
+        {% include 'base/header.html' %}
+        <main role="main" class="container">
+            {% block content %}{% endblock %}
+        </main>
+        {% include 'base/footer.html' %}
     </div>
     <script src="/devops-tools-front/static/pooper/popper.min.js"></script>
     <script src="/devops-tools-front/static/bootsrtap/js/bootstrap.bundle.min.js"></script>
