@@ -13,4 +13,9 @@ async def get_tools():
             "name": "مالیات و کد کالا",
             "url": "tax_and_moadian"
         })
+    if feature_status('app_settings'):
+        tools.append({
+            "name": "تنظيمات برنامه",
+            "url": "app_settings"
+        })
     return tools
