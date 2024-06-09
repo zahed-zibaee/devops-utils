@@ -12,7 +12,7 @@ RUN export MYSQLCLIENT_LDFLAGS=`pkg-config mysqlclient --libs`
 
 COPY requirements.txt .
 
-RUN pip install --no-cache-dir --upgrade -r requirements.txt
+RUN pip install --upgrade --no-cache-dir pip &&  pip install --no-cache-dir --upgrade -r requirements.txt
 
 COPY . .
 

@@ -1,18 +1,19 @@
-var $table = $("#table");
-const csvFile = document.getElementById('csv-file');
-const uploadButton = document.getElementById('upload-button');
 const toastLiveExample = document.getElementById('toast');
 
 var token = "";
 var hostname = "";
 
 function prepend_url(url) {
-    const notlocal = hostname.includes('bo.snapp.supply')
+    const notlocal = hostname.includes('bo.snapp.supply');
     if (notlocal) {
         return "/api-bo" + url
     } else {
         return url
     }
+}
+
+function notEmpty( el ){
+    return $.trim(el.html())
 }
 
 function createToast(message, severity, delay = 5000) {
@@ -46,12 +47,41 @@ function createToast(message, severity, delay = 5000) {
     });
 }
 
-uploadButton.addEventListener('click', () => {
-    $("#upload-button-product-tax-and-moadian-csv").prop('disabled', true);
+function inProgress() {
+    if (notEmpty($('#wrapper'))) {
+        var wrapper = $("#wrapper");
+        wrapper.prop('style', "cursor: not-allowed;");
+    }
+    if (notEmpty($('#upload-button'))) {
+        var buttonUpdate = $("#upload-button");
+        buttonUpdate.prop('disabled', true);
+    }
+    if (notEmpty($('#reset-button'))) {
+        var buttonReset = $("#reset-button");
+        buttonReset.prop('disabled', true);
+    } 
+}
+function finishedProgress() {
+    if (notEmpty($('#wrapper'))) {
+        var wrapper = $("#wrapper");
+        wrapper.prop('style', "");
+    }
+    if (notEmpty($('#upload-button'))) {
+        var buttonUpdate = $("#upload-button");
+        buttonUpdate.prop('disabled', false);
+    }
+    if (notEmpty($('#reset-button'))) {
+        var buttonReset = $("#reset-button");
+        buttonReset.prop('disabled', false);
+    } 
+}
+
+function uploadProductTaxAndMoadian() {
+    inProgress();
     var file = csvFile.files[0];
     if (!file) {
         createToast('No csv file selected!', "warning");
-        $("#upload-button-product-tax-and-moadian-csv").prop('disabled', false);
+        finishedProgress();
         return -1
     }
     var formData = new FormData();
@@ -68,33 +98,61 @@ uploadButton.addEventListener('click', () => {
     if (response.ok) {
         createToast('Product CSV file imported.', "success");
         console.log(response);
-        $("#upload-button-product-tax-and-moadian-csv").prop('disabled', false);
+        finishedProgress();
         $table.bootstrapTable('refresh')
-    } else {
-        createToast('Can not import CSV file check console logs.', "error");
-        $("#upload-button-product-tax-and-moadian-csv").prop('disabled', false);
-        console.error(response);
-    }
-    })
+    }})
     .catch(error => {
         createToast('Can not import CSV file check console logs.', "error");
-        $("#upload-button-product-tax-and-moadian-csv").prop('disabled', false);
+        finishedProgress();
         console.error(error);
     });
-});
+}
+
+function updateSettings() {
+    inProgress();
+    var orderLock = $("#order-lock-in-days").val();
+    if (!orderLock || orderLock < 0 || orderLock > 1000) {
+        createToast('Need to fill inputs!', "warning");
+        finishedProgress();
+        return -1
+    }
+    if (orderLock == lastOrderLock) {
+        createToast('Need to change order lock input!', "warning");
+        finishedProgress();
+        return -1
+    }
+    url = prepend_url('/devops-tools/v1/order/lock/edit')
+    fetch(url, {
+    method: 'PUT',
+    body: JSON.stringify({ "lock": orderLock }),
+    headers: {
+        "Content-Type": "application/json",
+        "Authorization": token,
+        }
+    })
+    .then(response => {
+    if (response.ok) {
+        createToast('Order lock Updated.', "success");
+        console.log(response);
+        finishedProgress();
+        lastOrderLock = orderLock;
+    }})
+    .catch(error => {
+        createToast('Can not update order lock, check console logs.', "error");
+        finishedProgress();
+        console.error(error);
+    });
+}
+
+function resetSettings() {
+    $("#order-lock-in-days").val(lastOrderLock);
+}
 
 function responseHandler(res) {
   $.each(res.rows, function (i, row) {
     row.state = $.inArray(row.id, selections) !== -1;
   });
   return res;
-}
-
-function initTable() {
-  $table.bootstrapTable("destroy").bootstrapTable({
-    height: 600,
-    locale: $("#locale").val(),
-  });
 }
 
 function ajaxRequestProductTaxMoadian(params) {
@@ -117,12 +175,7 @@ function ajaxRequestGetOrderLock() {
         headers: { Authorization: token }
     }).then(function (res) {
         console.log(res);
-        const orderLock = document.getElementById('order-lock');
-        orderLock.textContent = res.lock;
+        $('order-lock-in-days').val(res.lock);
+        lastOrderLock = res.lock;
     })
 }
-
-$(function () {
-    initTable();
-    $("#locale").change(initTable);
-});

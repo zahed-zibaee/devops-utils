@@ -18,7 +18,7 @@ def receive_gitlab_manifest_data():
         return project
     except Exception as e:
         logger.error(f"Can not get manifest project gitlab data. error: {e}")
-        raise HTTPException("500", 'Can not get manifest project gitlab data.')
+        raise HTTPException(status_code=500, detail='Can not get manifest project gitlab data.')
 
 def get_gitlab_file_content_lock(project_name ,manifest_project ,file_path):
     try:
@@ -26,7 +26,7 @@ def get_gitlab_file_content_lock(project_name ,manifest_project ,file_path):
         return file
     except Exception as e:
         logger.error(f"Can not generate {project_name} manifest file data. error: {e}")
-        raise HTTPException("500", f'Can not generate {project_name} manifest file data.')
+        raise HTTPException(status_code=500, detail=f'Can not generate {project_name} manifest file data.')
     
 @router.put("/devops-tools/v1/order/lock/edit")
 async def order_lock_edit(params: EditOrderLock):
@@ -38,7 +38,7 @@ async def order_lock_edit(params: EditOrderLock):
         legacy_file_decoded = legacy_file.decode()
     except Exception as e:
         logger.error(f"Can not decode manifest files. error: {e}")
-        raise HTTPException("500", 'Can not decode manifest files.')
+        raise HTTPException(status_code=500, detail='Can not decode manifest files.')
     try:
         new_order_content = re.sub(
             rb'(?m)^  - name: VALID_((?:BASKET|ORDER))_UPDATE_TIME_IN_DAYS\n    value: "(\d+)"\n', rf'  - name: VALID_\1_UPDATE_TIME_IN_DAYS\n    value: "{params.lock}"\n'.encode(), 
@@ -54,7 +54,7 @@ async def order_lock_edit(params: EditOrderLock):
         order_file.save(branch="main", commit_message=settings.COMMIT_MESSAGE_CHANGE_ORDER_LOCK)
     except Exception as e:
         logger.error(f"Can not save manifest files. error: {e}")
-        raise HTTPException("500", 'Can not save manifest files.')
+        raise HTTPException(status_code=500, detail='Can not save manifest files.')
     refresh_app(settings.ORDER_ARGOCD_APP_NAME)
     refresh_app(settings.LEGACY_ARGOCD_APP_NAME)
     logger.warning(f"Order lock time changed to {params.lock} days.")
@@ -65,14 +65,14 @@ async def get_lock_time():
     manifest_project = receive_gitlab_manifest_data()
     match_order_data = re.search(
         rb'(?m)^  - name: VALID_ORDER_UPDATE_TIME_IN_DAYS\n    value: "(\d+)"\n', 
-        get_gitlab_file_content_lock('order', manifest_project, settings.ORDER_FILE_PATH_MANIFEST)
+        get_gitlab_file_content_lock('order', manifest_project, settings.ORDER_FILE_PATH_MANIFEST).decode()
     )
     match_legacy_data = re.search(
         rb'(?m)^  - name: VALID_ORDER_UPDATE_TIME_IN_DAYS\n    value: (\d+)\n', 
-        get_gitlab_file_content_lock('legacy', manifest_project, settings.LEGACY_FILE_PATH_MANIFEST)
+        get_gitlab_file_content_lock('legacy', manifest_project, settings.LEGACY_FILE_PATH_MANIFEST).decode()
     )
     if match_legacy_data.group(1) != match_order_data.group(1):
         logger.warning(f"Order lock value is not synced: legacy lock value is {match_legacy_data.group(1).decode()} and order lock value is {match_order_data.group(1).decode()}")
-        raise HTTPException("412", 'Order lock data is not synced.')
+        raise HTTPException(status_code=412, detail='Order lock data is not synced.')
     else:
         return JSONResponse({"lock": match_order_data.group(1).decode()})

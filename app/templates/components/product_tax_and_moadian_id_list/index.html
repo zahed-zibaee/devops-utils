@@ -66,14 +66,31 @@
   </table>
   </div>
   <script>
+    var $table = $("#table");
+    const csvFile = document.getElementById('csv-file');
+    const uploadButton = document.getElementById('upload-button');
+    function initTable() {
+      $table.bootstrapTable("destroy").bootstrapTable({
+        height: 600,
+        locale: $("#locale").val(),
+      });
+    }
+    $(function () {
+      initTable();
+      $("#locale").change(initTable);
+    });
     window.addEventListener('message', function(event) {
-      if(!!event.data) {
+      if(!!event.data && !!event.data.hostname && !!event.data.token) {
           hostname = event.data.hostname;
-          console.log("Hostname received from the parent: " + hostname)
+          console.log("Hostname received from the parent: " + hostname);
           token = event.data.token;
           $table.bootstrapTable('refresh');
+          $('#loadOverlay').prop("style", "display: none;");
+          console.log("Message received from the parent: " + event.data);
       }
-      console.log("Message received from the parent: " + event.data);
+    });
+    uploadButton.addEventListener('click', () => {
+      uploadProductTaxAndMoadian();
     });
   </script>
 {% endblock %}

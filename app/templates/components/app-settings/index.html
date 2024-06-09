@@ -1,0 +1,47 @@
+{% extends "base/base.html" %}
+
+{% block content %}
+<div class="starter-template my-3">
+    <h1>{{ title }}</h1>
+    <p class="lead">{{ description }}</p>
+</div>
+  </div>
+  <div class="container px-3">
+    <h3>Order</h3>
+    <form class="m-3" method="put" enctype="multipart/form-data">
+    <div class="mb-3">
+      <div class="input-group d-flex">
+        <span class="input-group-text" id="basic-addon1">Order Lock</span>
+        <input id="order-lock-in-days" type="number" class="form-control" value="" aria-label="lock" aria-describedby="basic-addon1" min="0" max="1000" required> 
+        <span class="input-group-text" id="basic-addon1">day(s)</span>
+      </div>
+    </div>
+    </form>
+    <div class="d-flex justify-content-end">
+      <button id="upload-button" type="button" class="btn btn-info mx-1" >Update</button>
+      <button id="reset-button" type="button" class="btn btn-warning mx-1" >Reset</button>
+    </div>
+  </div>
+  <script>
+    const uploadButton = document.getElementById('upload-button');
+    const resetButton = document.getElementById('reset-button');
+    var lastOrderLock = -1;
+    window.addEventListener('message', function(event) {
+      if(!!event.data && !!event.data.hostname && !!event.data.token) {
+          hostname = event.data.hostname;
+          console.log("Hostname received from the parent: " + hostname);
+          token = event.data.token;   
+          ajaxRequestGetOrderLock();
+          resetSettings();
+          $('#loadOverlay').prop("style", "display: none;");
+          console.log("Message received from the parent: " + event.data);
+      }
+    });
+    uploadButton.addEventListener('click', () => {
+      updateSettings();
+    });
+    resetButton.addEventListener('click', () => { 
+      resetSettings();
+    });
+  </script>
+{% endblock %}

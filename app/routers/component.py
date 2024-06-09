@@ -13,10 +13,10 @@ async def get_products_component(request: Request):
         "description": "Product list/import for tax rate and moadian samane ID.",
         })
 
-@router.get("/devops-tools-front/v1/component/order/edit")
+@router.get("/devops-tools-front/v1/component/app-settings")
 async def get_products_component(request: Request):
-    return templates.TemplateResponse("components/order_lock/index.html", {
+    return templates.TemplateResponse("components/app-settings/index.html", {
         "request": request, 
-        "title": "Order Lock", 
-        "description": "Check and edit order lock.",
+        "title": "App Settings", 
+        "description": "Check and edit app settings.",
         })

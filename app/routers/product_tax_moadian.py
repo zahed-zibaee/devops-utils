@@ -46,7 +46,7 @@ async def get_products(
             total = total_not_filtered        
     except Exception as e:
         logger.error('Can not get product list from database: %s' % e)
-        raise HTTPException("500", 'Can not get product list from database.')
+        raise HTTPException(status_code=500, detail='Can not get product list from database.')
     products_list = [
         {'id': p.id, 
          'name': p.name, 
