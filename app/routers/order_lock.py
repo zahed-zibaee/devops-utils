@@ -4,6 +4,7 @@ from gitlab import Gitlab
 import re
 
 from app.core.config import settings
+from app.core.redis import get_cache, set_cache
 from app.core.argocd import refresh_app
 from app.core.logging import logger
 from app.schemas.main import EditOrderLock
@@ -50,6 +51,7 @@ async def order_lock_edit(params: EditOrderLock):
         )
         legacy_file.content = str(new_legacy_content, encoding="utf-8")
         order_file.content = str(new_order_content, encoding="utf-8")
+        await set_cache("lock", "order_lock", params.lock, 86400)
         legacy_file.save(branch="main", commit_message=settings.COMMIT_MESSAGE_CHANGE_ORDER_LOCK)
         order_file.save(branch="main", commit_message=settings.COMMIT_MESSAGE_CHANGE_ORDER_LOCK)
     except Exception as e:
@@ -62,6 +64,9 @@ async def order_lock_edit(params: EditOrderLock):
 
 @router.get("/devops-tools/v1/order/lock")
 async def get_lock_time():
+    cached_lock = await get_cache("lock", "order_lock")
+    if cached_lock:
+        return JSONResponse({"lock": cached_lock})
     manifest_project = receive_gitlab_manifest_data()
     match_order_data = re.search(
         rb'(?m)^  - name: VALID_ORDER_UPDATE_TIME_IN_DAYS\n    value: "(\d+)"\n', 
@@ -75,4 +80,5 @@ async def get_lock_time():
         logger.warning(f"Order lock value is not synced: legacy lock value is {match_legacy_data.group(1).decode()} and order lock value is {match_order_data.group(1).decode()}")
         raise HTTPException(status_code=412, detail='Order lock data is not synced.')
     else:
+        await set_cache("lock", "order_lock", match_order_data.group(1).decode(), 86400)
         return JSONResponse({"lock": match_order_data.group(1).decode()})

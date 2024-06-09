@@ -116,7 +116,8 @@ async def update_products(
                         {"id": int(row["ID"]), "tax_rate": tax_rate, "moadian_product_id": moadian_product_id}
                     )
             except Exception as e:
-                raise HTTPException(status_code=422, detail=f"Bad CSV file: {e}")
+                logger.error(f"Bad CSV file: {e}")
+                raise HTTPException(status_code=422, detail=f"Bad CSV file.")
             update_data(my_chunck)
             
         db_write.execute(text(
@@ -128,7 +129,7 @@ async def update_products(
         return 200, "CSV data successfully processed for updates in 'products' table."
 
     except Exception as e:
-        logger.error("Error occurred during update process. Please check the server logs. error:" + e)
+        logger.error("Error occurred during update process. Please check the server logs. error:" + str(e))
         raise HTTPException(
             status_code=500, 
             detail="Error occurred during update process. Please check the server logs."
