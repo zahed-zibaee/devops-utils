@@ -99,10 +99,23 @@ function uploadProductTaxAndMoadian() {
         createToast('Product CSV file imported.', "success");
         console.log(response);
         finishedProgress();
-        $table.bootstrapTable('refresh')
-    }})
+        $table.bootstrapTable('refresh');
+    } else if (response.status == 422) {
+        createToast('Bad CSV file!', "error");
+        console.log(response);
+        finishedProgress();
+    }else if (response.status == 404) {
+        createToast('Product not found!', "error");
+        console.log(response);
+        finishedProgress();
+    } else {
+        createToast('Can not import CSV file! check console logs.', "error");
+        console.log(response);
+        finishedProgress();
+    }
+    })
     .catch(error => {
-        createToast('Can not import CSV file check console logs.', "error");
+        createToast('Can not import CSV file! check console logs.', "error");
         finishedProgress();
         console.error(error);
     });
@@ -135,7 +148,12 @@ function updateSettings() {
         console.log(response);
         finishedProgress();
         lastOrderLock = orderLock;
-    }})
+    }else {
+        createToast('Can not update order lock, check console logs.', "error");
+        console.log(response);
+        finishedProgress();
+    }
+    })
     .catch(error => {
         createToast('Can not update order lock, check console logs.', "error");
         finishedProgress();

@@ -44,4 +44,4 @@ def refresh_app(app_name):
             logger.warning(f"argocd can not refresh app {app_name}: " + version_res.stderr)
             return
     except Exception as e:
-        logger.warning(f"argocd can not refresh app {app_name}: " + e)
+        logger.warning(f"argocd can not refresh app {app_name}: " + str(e))
