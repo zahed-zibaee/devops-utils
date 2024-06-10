@@ -16,12 +16,17 @@ function notEmpty( el ){
     return $.trim(el.html())
 }
 
-function createToast(message, severity, delay = 5000) {
+function createToast(message, severity, status = 500, delay = 5000) {
     const toastTemplate = document.getElementById('toastTemplate');
     const toastClone = toastTemplate.cloneNode(true);
     toastClone.id = '';
 
+    if (severity != 'success') {
+    toastClone.querySelector('.alert-message').textContent = "Error " + status + ": " + message;
+    } else {
     toastClone.querySelector('.alert-message').textContent = message;
+
+    }
 
     if (severity == 'warning') {
         toastClone.querySelector('.alert').classList.add("alert-warning");
@@ -80,48 +85,43 @@ function uploadProductTaxAndMoadian() {
     inProgress();
     var file = csvFile.files[0];
     if (!file) {
-        createToast('No csv file selected!', "warning");
+        createToast('No csv file selected!', "warning", 422);
         finishedProgress();
         return -1
     }
     var formData = new FormData();
     formData.append('file', file);
     url = prepend_url('/devops-tools/v1/products/tax_and_moadian/import_csv')
-    fetch(url, {
-    method: 'POST',
-    body: formData,
+    $.ajax(url, {
+    type: 'POST',
+    data: formData,
+    contentType: false,
+    processData: false,
     headers: {
         "Authorization": token,
+    },
+    statusCode: {
+        200: function (res) {
+            createToast('Product CSV file imported.', "success");
+            finishedProgress();
+            $table.bootstrapTable('refresh'); 
         }
-    })
-    .then(response => {
-    if (response.ok) {
-        createToast('Product CSV file imported.', "success");
-        console.log(response);
-        finishedProgress();
-        $table.bootstrapTable('refresh');
-    } else if (response.status == 422) {
-        createToast('Bad CSV file!', "error");
-        console.log(response);
-        finishedProgress();
-    } else if (response.status == 404) {
-        createToast('Product not found!', "error");
-        console.log(response);
-        finishedProgress();
-    } else if (response.status == 503) {
-        createToast('Can not access database!', "error");
-        console.log(response);
-        finishedProgress();
-    } else {
-        createToast('Can not import CSV file! check console logs.', "error");
-        console.log(response);
+    },
+    error: function (jqXHR, status, error) {
+        var message;
+        if (jqXHR.status == 422) {
+            message = "Bad CSV file!";
+        } else if (jqXHR.status == 404) {
+            message = "Product not found!";
+        } else if (jqXHR.status == 503) {
+            message = "Can not access database!";
+        } else {
+            message = "Can not import CSV file! check console logs.";
+        }
+        createToast(message, "error", jqXHR.status);
+        console.log(jqXHR.responseJSON);
         finishedProgress();
     }
-    })
-    .catch(error => {
-        createToast('Can not import CSV file! check console logs.', "error");
-        finishedProgress();
-        console.error(error);
     });
 }
 
@@ -133,35 +133,30 @@ function updateSettings() {
         return -1
     }
     if (!orderLock || orderLock < 0 || orderLock > 1000) {
-        createToast('Need to fill inputs!', "warning");
+        createToast('Need to fill inputs!', "warning", 422);
         finishedProgress();
         return -1
     }
     url = prepend_url('/devops-tools/v1/order/lock/edit')
-    fetch(url, {
-    method: 'PUT',
-    body: JSON.stringify({ "lock": orderLock }),
+    $.ajax(url, {
+    type: 'PUT',
+    data: JSON.stringify({ "lock": orderLock }),
     headers: {
         "Content-Type": "application/json",
         "Authorization": token,
+    },
+    statusCode: {
+        200: function (res) {
+            createToast('Order lock Updated.', "success");
+            finishedProgress();
+            lastOrderLock = orderLock;
         }
-    })
-    .then(response => {
-    if (response.ok) {
-        createToast('Order lock Updated.', "success");
-        console.log(response);
-        finishedProgress();
-        lastOrderLock = orderLock;
-    } else {
-        createToast('Can not update order lock, check console logs.', "error");
-        console.log(response);
+    },
+    error: function (jqXHR, status, error) {
+        createToast('Can not update order lock, check console logs.', "error", jqXHR.status);
+        console.log(jqXHR.responseJSON);
         finishedProgress();
     }
-    })
-    .catch(error => {
-        createToast('Can not update order lock, check console logs.', "error");
-        finishedProgress();
-        console.error(error);
     });
 }
 
@@ -181,16 +176,16 @@ function ajaxRequestProductTaxMoadian(params) {
     $.ajax({
         url: url + '?' + $.param(params.data),
         type: "GET",
-        headers: { Authorization: token }
-    }).then(function (res) {
-        if (res.status != 200){
-            createToast('Can not get product data.', "error");
-            console.error(res);
-        } else {
-            params.success(res)
+        headers: { Authorization: token },
+        statusCode: {
+            200: function (res) {
+                params.success(res);
+            }
+        },
+        error: function (jqXHR, status, error) {
+            createToast('Can not get product data.', "error", jqXHR.status);
+            console.log(jqXHR.responseJSON);
         }
-    }).catch(error => {
-        createToast('Can not get product data.', "error");
     });
 }
 
@@ -199,16 +194,26 @@ function ajaxRequestGetOrderLock() {
     $.ajax({
         url: url,
         type: "GET",
-        headers: { Authorization: token }
-    }).then(function (res) {
-        if (res.status != 200) {
-            createToast('Can not get order lock data.', "error");
-            console.error(res);
-        } else {
-            $('#order-lock-in-days').val(res.lock);
-            lastOrderLock = res.lock;
+        headers: { Authorization: token },
+        statusCode: {
+            200: function (res) {
+                $('#order-lock-in-days').val(res.lock);
+                lastOrderLock = res.lock;
+            },
+            412: function (res) {
+                createToast('Order lock is not equal as legacy lock.', "error", jqXHR.status);
+                console.log(res);
+            }
+        },
+        error: function (jqXHR, status, error) {
+            var message;
+            if (jqXHR.status == 412) {
+                message = "Order lock is not equal as legacy lock!"
+            } else {
+                message = "Can not get product data."
+            }
+            createToast(message, "error", jqXHR.status);
+            console.log(jqXHR.responseJSON);
         }
-    }).catch(error => {
-        createToast('Can not get order lock data.', "error");
     });
 }
