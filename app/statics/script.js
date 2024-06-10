@@ -152,7 +152,7 @@ function updateSettings() {
         console.log(response);
         finishedProgress();
         lastOrderLock = orderLock;
-    }else {
+    } else {
         createToast('Can not update order lock, check console logs.', "error");
         console.log(response);
         finishedProgress();
@@ -183,12 +183,12 @@ function ajaxRequestProductTaxMoadian(params) {
         type: "GET",
         headers: { Authorization: token }
     }).then(function (res) {
-        if (!res.ok){
+        if (res.status != 200){
             createToast('Can not get product data.', "error");
+            console.error(res);
         } else {
             params.success(res)
         }
-        console.log(res);
     }).catch(error => {
         createToast('Can not get product data.', "error");
     });
@@ -201,13 +201,13 @@ function ajaxRequestGetOrderLock() {
         type: "GET",
         headers: { Authorization: token }
     }).then(function (res) {
-        if (!res.ok) {
+        if (res.status != 200) {
             createToast('Can not get order lock data.', "error");
+            console.error(res);
         } else {
             $('#order-lock-in-days').val(res.lock);
             lastOrderLock = res.lock;
         }
-        console.log(res);
     }).catch(error => {
         createToast('Can not get order lock data.', "error");
     });
