@@ -46,7 +46,7 @@ async def get_products(
             total = total_not_filtered        
     except Exception as e:
         logger.error('Can not get product list from database: ' + str(e))
-        raise HTTPException(status_code=500, detail='Can not get product list from database.')
+        raise HTTPException(status_code=503, detail='Can not get product list from database.')
     products_list = [
         {'id': p.id, 
          'name': p.name, 
@@ -73,64 +73,60 @@ async def update_products(
     Returns:
         str: Message indicating success or error.
     """
-    try:
-        updated_products = []
-        # Define function to update data (using pandas for efficiency)
-        def update_data(dic_chunk):
-            for row in dic_chunk:
-                if row["tax_rate"] is not None:
-                    if row["tax_rate"] > 100 or row["tax_rate"] < 0:
-                        raise HTTPException(
-                            status_code=422, 
-                            detail="Data problem - id={_id} - tax rate={tax_rate}".format(
-                                _id = row["id"], 
-                                tax_rate = row["tax_rate"]
-                            )
+    updated_products = []
+    # Define function to update data (using pandas for efficiency)
+    def update_data(dic_chunk):
+        for row in dic_chunk:
+            if row["tax_rate"] is not None:
+                if row["tax_rate"] > 100 or row["tax_rate"] < 0:
+                    raise HTTPException(
+                        status_code=422, 
+                        detail="Data problem - id={_id} - tax rate={tax_rate}".format(
+                            _id = row["id"], 
+                            tax_rate = row["tax_rate"]
                         )
-                try:
-                    product = db_read.query(Product).filter(Product.id == row["id"]).first()
-                except:
-                    raise HTTPException(status_code=404, detail="Product not found - id={_id}".format(_id=row["id"]))
-                product.tax_rate = row["tax_rate"]
-                product.moadian_product_id = row["moadian_product_id"]
-                updated_products.append(product)                    
-                
-        for chunk in pd.read_csv(file.file, chunksize=1000, iterator=True):
-            if "ID" not in chunk.columns or "Tax Rate" not in chunk.columns or "Moadian Product ID" not in chunk.columns :
-                raise HTTPException(
-                    status_code=404, 
-                    detail=f"Bad CSV file - check csv columns"
-                ) 
-            my_chunck = []
-            try:
-                for _, row in chunk.iterrows():
-                    if row["Tax Rate"] == "Not Defined":
-                        tax_rate = None
-                    else:
-                        tax_rate = int(row["Tax Rate"])
-                    if row["Moadian Product ID"] != row["Moadian Product ID"]:
-                        moadian_product_id = ""
-                    else:
-                        moadian_product_id = int(row["Moadian Product ID"])
-                    my_chunck.append(
-                        {"id": int(row["ID"]), "tax_rate": tax_rate, "moadian_product_id": moadian_product_id}
                     )
-            except Exception as e:
-                logger.error(f"Bad CSV file: {e}")
-                raise HTTPException(status_code=422, detail=f"Bad CSV file.")
-            update_data(my_chunck)
+            try:
+                product = db_read.query(Product).filter(Product.id == row["id"]).first()
+            except:
+                raise HTTPException(status_code=404, detail="Product not found - id={_id}".format(_id=row["id"]))
+            product.tax_rate = row["tax_rate"]
+            product.moadian_product_id = row["moadian_product_id"]
+            updated_products.append(product)                    
             
+    for chunk in pd.read_csv(file.file, chunksize=1000, iterator=True):
+        if "ID" not in chunk.columns or "Tax Rate" not in chunk.columns or "Moadian Product ID" not in chunk.columns :
+            raise HTTPException(
+                status_code=422, 
+                detail=f"Bad CSV file - check csv columns"
+            ) 
+        my_chunck = []
+        try:
+            for _, row in chunk.iterrows():
+                if row["Tax Rate"] == "Not Defined":
+                    tax_rate = None
+                else:
+                    tax_rate = int(row["Tax Rate"])
+                if row["Moadian Product ID"] != row["Moadian Product ID"]:
+                    moadian_product_id = ""
+                else:
+                    moadian_product_id = int(row["Moadian Product ID"])
+                my_chunck.append(
+                    {"id": int(row["ID"]), "tax_rate": tax_rate, "moadian_product_id": moadian_product_id}
+                )
+        except Exception as e:
+            logger.error(f"Bad CSV file: {e}")
+            raise HTTPException(status_code=422, detail=f"Bad CSV file.")
+        update_data(my_chunck)
+    try:   
         db_write.execute(text(
             f"UPDATE {Product().get_table_name()} SET tax_rate = Null, moadian_product_id= \"\";"
             ))
         db_write.bulk_save_objects(updated_products)
         db_write.commit()
-        
-        return 200, "CSV data successfully processed for updates in 'products' table."
-
     except Exception as e:
-        logger.error("Error occurred during update process. Please check the server logs. error:" + str(e))
-        raise HTTPException(
-            status_code=500, 
-            detail="Error occurred during update process. Please check the server logs."
-            )
+        logger.error(f"Can not commit data: {e}")
+        raise HTTPException(status_code=503, detail=f"Can not commit data.")
+
+    return 200, "CSV data successfully processed for updates in 'products' table."
+

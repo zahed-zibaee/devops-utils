@@ -104,8 +104,12 @@ function uploadProductTaxAndMoadian() {
         createToast('Bad CSV file!', "error");
         console.log(response);
         finishedProgress();
-    }else if (response.status == 404) {
+    } else if (response.status == 404) {
         createToast('Product not found!', "error");
+        console.log(response);
+        finishedProgress();
+    } else if (response.status == 503) {
+        createToast('Can not access database!', "error");
         console.log(response);
         finishedProgress();
     } else {
@@ -179,8 +183,12 @@ function ajaxRequestProductTaxMoadian(params) {
         type: "GET",
         headers: { Authorization: token }
     }).then(function (res) {
+        if (!res.ok){
+            createToast('Can not get product data.', "error");
+        } else {
+            params.success(res)
+        }
         console.log(res);
-        params.success(res)
     }).catch(error => {
         createToast('Can not get product data.', "error");
     });
@@ -193,9 +201,13 @@ function ajaxRequestGetOrderLock() {
         type: "GET",
         headers: { Authorization: token }
     }).then(function (res) {
+        if (!res.ok) {
+            createToast('Can not get order lock data.', "error");
+        } else {
+            $('#order-lock-in-days').val(res.lock);
+            lastOrderLock = res.lock;
+        }
         console.log(res);
-        $('#order-lock-in-days').val(res.lock);
-        lastOrderLock = res.lock;
     }).catch(error => {
         createToast('Can not get order lock data.', "error");
     });
