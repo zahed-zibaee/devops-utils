@@ -91,7 +91,7 @@ async def update_products(
                 if not product:
                     raise HTTPException(status_code=404, detail="Product not found - id={_id}".format(_id=row["id"]))
             except:
-                    raise HTTPException(status_code=404, detail=f"Can not get product {row["id"]} from database")
+                    raise HTTPException(status_code=404, detail="Can not get product {_id} from database".format(_id=row["id"]))
             product.tax_rate = row["tax_rate"]
             product.moadian_product_id = row["moadian_product_id"]
             updated_products.append(product)                    
