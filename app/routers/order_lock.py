@@ -18,7 +18,7 @@ def receive_gitlab_manifest_data():
         project = gitlab.projects.get(settings.GITLAB_PROJECT_ID_MANIFEST)
         return project
     except Exception as e:
-        logger.error(f"Can not get manifest project gitlab data. error: {e}")
+        logger.error(f"Can not get manifest project gitlab data. error: {str(e)}")
         raise HTTPException(status_code=500, detail='Can not get manifest project gitlab data.')
 
 def get_gitlab_file_content_lock(project_name ,manifest_project ,file_path):
@@ -26,7 +26,7 @@ def get_gitlab_file_content_lock(project_name ,manifest_project ,file_path):
         file = manifest_project.files.get(file_path=f'{file_path}', ref='main')
         return file
     except Exception as e:
-        logger.error(f"Can not generate {project_name} manifest file data. error: {e}")
+        logger.error(f"Can not generate {project_name} manifest file data. error: {str(e)}")
         raise HTTPException(status_code=500, detail=f'Can not generate {project_name} manifest file data.')
     
 @router.put("/devops-tools/v1/order/lock/edit")
@@ -38,7 +38,7 @@ async def order_lock_edit(params: EditOrderLock):
         order_file_decoded = order_file.decode()
         legacy_file_decoded = legacy_file.decode()
     except Exception as e:
-        logger.error(f"Can not decode manifest files. error: {e}")
+        logger.error(f"Can not decode manifest files. error: {str(e)}")
         raise HTTPException(status_code=500, detail='Can not decode manifest files.')
     try:
         new_order_content = re.sub(
@@ -55,7 +55,7 @@ async def order_lock_edit(params: EditOrderLock):
         legacy_file.save(branch="main", commit_message=settings.COMMIT_MESSAGE_CHANGE_ORDER_LOCK)
         order_file.save(branch="main", commit_message=settings.COMMIT_MESSAGE_CHANGE_ORDER_LOCK)
     except Exception as e:
-        logger.error(f"Can not save manifest files. error: {e}")
+        logger.error(f"Can not save manifest files. error: {str(e)}")
         raise HTTPException(status_code=500, detail='Can not save manifest files.')
     refresh_app(settings.ORDER_ARGOCD_APP_NAME)
     refresh_app(settings.LEGACY_ARGOCD_APP_NAME)

@@ -45,7 +45,7 @@ async def get_products(
             products = db.query(Product).filter(Product.status == 0).limit(params.limit).offset(params.offset).all()
             total = total_not_filtered        
     except Exception as e:
-        logger.error('Can not get product list from database: ' + e)
+        logger.error('Can not get product list from database: ' + str(e))
         raise HTTPException(status_code=500, detail='Can not get product list from database.')
     products_list = [
         {'id': p.id, 
