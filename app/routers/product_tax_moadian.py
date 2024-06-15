@@ -52,7 +52,7 @@ async def get_products(
          'name': p.name, 
          'tax_rate': 'Not Defined' if p.tax_rate is None else p.tax_rate, 
          'moadian_product_id': p.moadian_product_id, 
-         "state": "Online" if p.state == 0 else "Offline"
+         "state": "Online" if p.state == 1 else "Offline"
         } for p in products]
     logger.info(f'get product list: {str(products_list[:5])} ...')
     return {"rows": products_list, "total": total, "totalNotFiltered": total_not_filtered}
