@@ -1,5 +1,5 @@
-FROM tiangolo/uvicorn-gunicorn-fastapi:python3.11
-#FROM registry.teh-1.snappcloud.io/fra-1/tiangolo/uvicorn-gunicorn-fastapi:python3.11
+#FROM tiangolo/uvicorn-gunicorn-fastapi:python3.11
+FROM registry.teh-1.snappcloud.io/fra-1/tiangolo/uvicorn-gunicorn-fastapi:python3.11
 
 WORKDIR /app
 
@@ -15,6 +15,8 @@ COPY requirements.txt .
 RUN pip install --upgrade --no-cache-dir pip &&  pip install --no-cache-dir --upgrade -r requirements.txt
 
 COPY . .
+
+RUN git rev-parse --short HEAD > app/git-head
 
 RUN chgrp -R 0   /app && \
     chmod -R g=u /app

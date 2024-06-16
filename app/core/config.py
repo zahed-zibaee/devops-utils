@@ -1,5 +1,9 @@
 from pydantic_settings import BaseSettings
 
+
+def get_git_head():
+    with open('app/git-head', 'r') as file:
+        return file.read()
 class Settings(BaseSettings):
     PROJECT_NAME: str = 'devops-utils'
     PORT: int = 8000
@@ -38,5 +42,7 @@ class Settings(BaseSettings):
     REDIS_PORT: int = 6379
     REDIS_DB: int = 0
     REDIS_PASSWORD: str = ''
+    # Hash
+    GIT_HASH: str = get_git_head()
     
 settings = Settings()

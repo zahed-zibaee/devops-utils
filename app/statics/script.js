@@ -171,6 +171,47 @@ function responseHandler(res) {
   return res;
 }
 
+function exportProductTaxAndMoadian(){
+    const url = prepend_url('/devops-tools/v1/products/tax_and_moadian/export_csv')
+    var xhr = $.ajax({
+        url: url,
+        type: "GET",
+        headers: { Authorization: token },
+        responseType: 'blob', // Set the response type to 'blob'
+        success: function (data, status, xhr) {
+            let filename = '';
+            const disposition = xhr.getResponseHeader('Content-Disposition');
+            if (disposition && disposition.indexOf('attachment') !== -1) {
+                const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                const matches = filenameRegex.exec(disposition);
+                if (matches != null && matches[1]) {
+                    filename = matches[1].replace(/['"]/g, '');
+                }
+            }
+    
+            if (!filename) {
+                filename = 'products.csv';
+            }
+    
+            const blob = new Blob([data], { type: 'application/octet-stream' }); // Create a Blob from the response data
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            
+            a.href = url;
+            a.download = filename;
+    
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        },
+        error: function (jqXHR, status, error) {
+            createToast('Can not export product csv.', "error", jqXHR.status);
+            console.log(jqXHR.responseJSON);
+        }
+    });
+}
+
 function ajaxRequestProductTaxMoadian(params) {
     const url = prepend_url('/devops-tools/v1/products/tax_and_moadian/list')
     $.ajax({
