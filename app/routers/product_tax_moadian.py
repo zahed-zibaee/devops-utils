@@ -1,8 +1,12 @@
-from fastapi import APIRouter, Depends, File, UploadFile, HTTPException
+from fastapi import APIRouter, Depends, File, UploadFile, HTTPException, Response
 from sqlalchemy import text, or_, and_, func
 from sqlalchemy.orm import Session
+from datetime import datetime
 
+import pytz
 import pandas as pd
+import io
+import csv
 
 from app.schemas.main import GetProducts, Product
 from app.core.logging import logger
@@ -10,7 +14,7 @@ from app.core.db import get_db_mysql_write, get_db_mysql_read
 
 
 router = APIRouter()
-
+ 
 @router.get("/devops-tools/v1/products/tax_and_moadian/list")
 async def get_products(
     params: GetProducts = Depends(),
@@ -56,6 +60,53 @@ async def get_products(
         } for p in products]
     logger.info(f'get product list: {str(products_list[:5])} ...')
     return {"rows": products_list, "total": total, "totalNotFiltered": total_not_filtered}
+
+@router.get("/devops-tools/v1/products/tax_and_moadian/export_csv")
+async def get_products(
+    db: Session = Depends(get_db_mysql_read)
+    ):
+    """
+    Retrieves a list of products from the database with optional filtering by product ID.
+
+    Args:
+        id (int, optional): The ID of the specific product to retrieve.
+        limit (int, optional): The maximum number of products to return. Defaults to 100, must be <= 100.
+        offset (int, optional): The number of products to skip before starting to collect the result set. Defaults to 0.
+        db (Session): A database session dependency for querying the database.
+
+    Returns:
+        List[Dict]: A list of products with each product's details.
+    """
+    
+    try:
+        products = db.query(Product).filter(Product.status == 0).all()       
+    except Exception as e:
+        logger.error('Can not get product list from database: ' + str(e))
+        raise HTTPException(status_code=503, detail='Can not get product list from database.')
+    products_list = [
+        {'id': p.id, 
+         'name': p.name, 
+         'tax_rate': 'Not Defined' if p.tax_rate is None else p.tax_rate, 
+         'moadian_product_id': p.moadian_product_id, 
+         "state": "Online" if p.state == 0 else "Offline"
+        } for p in products]
+    logger.info(f'export product csv...')
+    tz = pytz.timezone('Asia/Tehran')
+    date_time = datetime.now(tz).strftime('%Y%m%d%H%M')
+    
+    strbuff = io.StringIO()
+    products_csv_data = csv.DictWriter(strbuff, fieldnames=["id", "name", "tax_rate", "moadian_product_id", "state"])
+    products_csv_data.writeheader()
+    products_csv_data.writerows(products_list)
+    
+    csv_content = strbuff.getvalue().encode('utf-8-sig')
+    strbuff.close()
+    
+    return Response(
+        content=csv_content,
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=products_{date_time}.csv"}
+    )
 
 @router.post("/devops-tools/v1/products/tax_and_moadian/import_csv")
 async def update_products(
