@@ -193,7 +193,7 @@ function exportProductTaxAndMoadian(){
                 filename = 'products.csv';
             }
     
-            const blob = new Blob([data], { type: 'application/octet-stream' }); // Create a Blob from the response data
+            const blob = new Blob([data], { type: 'text/csv;charset=utf-8' }); // Create a Blob from the response data
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             

@@ -66,36 +66,34 @@ async def get_products(
     db: Session = Depends(get_db_mysql_read)
     ):
     """
-    Retrieves a list of products from the database with optional filtering by product ID.
+    Exports a list of products from the database to a CSV file.
+
+    The products are filtered to include only those with a status of 0 (active).
 
     Args:
-        id (int, optional): The ID of the specific product to retrieve.
-        limit (int, optional): The maximum number of products to return. Defaults to 100, must be <= 100.
-        offset (int, optional): The number of products to skip before starting to collect the result set. Defaults to 0.
         db (Session): A database session dependency for querying the database.
 
     Returns:
-        List[Dict]: A list of products with each product's details.
+        Response: A response object containing the CSV file with product details.
     """
-    
     try:
         products = db.query(Product).filter(Product.status == 0).all()       
     except Exception as e:
         logger.error('Can not get product list from database: ' + str(e))
         raise HTTPException(status_code=503, detail='Can not get product list from database.')
     products_list = [
-        {'id': p.id, 
-         'name': p.name, 
-         'tax_rate': 'Not Defined' if p.tax_rate is None else p.tax_rate, 
-         'moadian_product_id': p.moadian_product_id, 
-         "state": "Online" if p.state == 0 else "Offline"
+        {'ID': p.id, 
+         'Name': p.name, 
+         'Tax Rate': 'Not Defined' if p.tax_rate is None else p.tax_rate, 
+         'Moadian Product ID': p.moadian_product_id, 
+         "State": "Online" if p.state == 0 else "Offline"
         } for p in products]
     logger.info(f'export product csv...')
     tz = pytz.timezone('Asia/Tehran')
     date_time = datetime.now(tz).strftime('%Y%m%d%H%M')
     
     strbuff = io.StringIO()
-    products_csv_data = csv.DictWriter(strbuff, fieldnames=["id", "name", "tax_rate", "moadian_product_id", "state"])
+    products_csv_data = csv.DictWriter(strbuff, fieldnames=["ID", "Name", "Tax Rate", "Moadian Product ID", "State"])
     products_csv_data.writeheader()
     products_csv_data.writerows(products_list)
     
@@ -105,7 +103,7 @@ async def get_products(
     return Response(
         content=csv_content,
         media_type="text/csv",
-        headers={"Content-Disposition": f"attachment; filename=products_{date_time}.csv"}
+        headers={"Content-Disposition": f"attachment; filename=products_tax_and_moadian_{date_time}.csv"}
     )
 
 @router.post("/devops-tools/v1/products/tax_and_moadian/import_csv")
