@@ -66,6 +66,7 @@ function inProgress() {
         buttonReset.prop('disabled', true);
     } 
 }
+
 function finishedProgress() {
     if (notEmpty($('#wrapper'))) {
         var wrapper = $("#wrapper");
@@ -108,18 +109,7 @@ function uploadProductTaxAndMoadian() {
         }
     },
     error: function (jqXHR, status, error) {
-        var message;
-        if (jqXHR.status == 422) {
-            message = "Bad CSV file!";
-        } else if (jqXHR.status == 404) {
-            message = "Product not found!";
-        } else if (jqXHR.status == 503) {
-            message = "Can not access database!";
-        } else {
-            message = "Can not import CSV file! check console logs.";
-        }
-        createToast(message, "error", jqXHR.status);
-        console.log(jqXHR.responseJSON);
+        handleErrors(status, jqXHR.responseJSON);
         finishedProgress();
     }
     });
@@ -153,8 +143,7 @@ function updateSettings() {
         }
     },
     error: function (jqXHR, status, error) {
-        createToast('Can not update order lock, check console logs.', "error", jqXHR.status);
-        console.log(jqXHR.responseJSON);
+        handleErrors(status, jqXHR.responseJSON);
         finishedProgress();
     }
     });
@@ -206,8 +195,7 @@ function exportProductTaxAndMoadian(){
             URL.revokeObjectURL(url);
         },
         error: function (jqXHR, status, error) {
-            createToast('Can not export product csv.', "error", jqXHR.status);
-            console.log(jqXHR.responseJSON);
+            handleErrors(status, jqXHR.responseJSON);
         }
     });
 }
@@ -224,8 +212,7 @@ function ajaxRequestProductTaxMoadian(params) {
             }
         },
         error: function (jqXHR, status, error) {
-            createToast('Can not get product data.', "error", jqXHR.status);
-            console.log(jqXHR.responseJSON);
+            handleErrors(status, jqXHR.responseJSON);
         }
     });
 }
@@ -240,21 +227,15 @@ function ajaxRequestGetOrderLock() {
             200: function (res) {
                 $('#order-lock-in-days').val(res.lock);
                 lastOrderLock = res.lock;
-            },
-            412: function (res) {
-                createToast('Order lock is not equal as legacy lock.', "error", jqXHR.status);
-                console.log(res);
             }
         },
         error: function (jqXHR, status, error) {
-            var message;
-            if (jqXHR.status == 412) {
-                message = "Order lock is not equal as legacy lock!"
-            } else {
-                message = "Can not get product data."
-            }
-            createToast(message, "error", jqXHR.status);
-            console.log(jqXHR.responseJSON);
+            handleErrors(status, jqXHR.responseJSON);
         }
     });
+}
+
+function handleErrors(status, message) {        
+    createToast(message, "error", status);
+    console.log("Error :" + "message");
 }
