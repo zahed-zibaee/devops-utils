@@ -154,14 +154,14 @@ async def update_products(
         my_chunck = []
         try:
             for _, row in chunk.iterrows():
-                if row["Tax Rate"] == "Not Defined":
+                if row["Tax Rate"] == " ":
                     tax_rate = None
                 else:
-                    tax_rate = int(row["Tax Rate"])
+                    tax_rate = int(float(row["Tax Rate"]))
                 if row["Moadian Product ID"] != row["Moadian Product ID"]:
                     moadian_product_id = ""
                 else:
-                    moadian_product_id = int(row["Moadian Product ID"])
+                    moadian_product_id = int(float(row["Moadian Product ID"]))
                 my_chunck.append(
                     {"id": int(row["ID"]), "tax_rate": tax_rate, "moadian_product_id": moadian_product_id}
                 )
