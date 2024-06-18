@@ -154,7 +154,7 @@ async def update_products(
         my_chunck = []
         try:
             for _, row in chunk.iterrows():
-                if row["Tax Rate"] == " ":
+                if row["Tax Rate"] == "Not Defined":
                     tax_rate = None
                 else:
                     tax_rate = int(float(row["Tax Rate"]))
