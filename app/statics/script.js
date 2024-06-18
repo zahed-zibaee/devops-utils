@@ -109,7 +109,7 @@ function uploadProductTaxAndMoadian() {
         }
     },
     error: function (jqXHR, status, error) {
-        handleErrors(status, jqXHR.responseJSON);
+        handleErrors(jqXHR.status, jqXHR.responseJSON);
         finishedProgress();
     }
     });
@@ -143,7 +143,7 @@ function updateSettings() {
         }
     },
     error: function (jqXHR, status, error) {
-        handleErrors(status, jqXHR.responseJSON);
+        handleErrors(jqXHR.status, jqXHR.responseJSON);
         finishedProgress();
     }
     });
@@ -195,7 +195,7 @@ function exportProductTaxAndMoadian(){
             URL.revokeObjectURL(url);
         },
         error: function (jqXHR, status, error) {
-            handleErrors(status, jqXHR.responseJSON);
+            handleErrors(jqXHR.status, jqXHR.responseJSON);
         }
     });
 }
@@ -212,7 +212,7 @@ function ajaxRequestProductTaxMoadian(params) {
             }
         },
         error: function (jqXHR, status, error) {
-            handleErrors(status, jqXHR.responseJSON);
+            handleErrors(jqXHR.status, jqXHR.responseJSON);
         }
     });
 }
@@ -230,12 +230,12 @@ function ajaxRequestGetOrderLock() {
             }
         },
         error: function (jqXHR, status, error) {
-            handleErrors(status, jqXHR.responseJSON);
+            handleErrors(jqXHR.status, jqXHR.responseJSON);
         }
     });
 }
 
 function handleErrors(status, message) {        
-    createToast(message, "error", status);
-    console.log("Error :" + "message");
+    createToast(message.detail, "error", status);
+    console.error("Error :" + message.detail);
 }
