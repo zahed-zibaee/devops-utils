@@ -86,7 +86,7 @@ async def get_products(
          'Name': p.name, 
          'Tax Rate': 'Not Defined' if p.tax_rate is None else p.tax_rate, 
          'Moadian Product ID': p.moadian_product_id, 
-         "State": "Online" if p.state == 0 else "Offline"
+         "State": "Online" if p.state == 1 else "Offline"
         } for p in products]
     logger.info(f'export product csv...')
     tz = pytz.timezone('Asia/Tehran')
@@ -177,7 +177,7 @@ async def update_products(
         db_write.commit()
     except Exception as e:
         logger.error(f"Can not commit data: {e}")
-        raise HTTPException(status_code=503, detail=f"Can not commit data.")
+        raise HTTPException(status_code=503 , detail=f"Can not commit data.")
 
-    return 200, "CSV data successfully processed for updates in 'products' table."
+    return {"detail": "CSV data successfully processed for updates in products table."}
 
