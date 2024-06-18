@@ -177,7 +177,7 @@ function exportProductTaxAndMoadian(){
         url: url,
         type: "GET",
         headers: { Authorization: token },
-        responseType: 'blob', // Set the response type to 'blob'
+        responseType: 'blob',
         success: function (data, status, xhr) {
             let filename = '';
             const disposition = xhr.getResponseHeader('Content-Disposition');
@@ -192,8 +192,8 @@ function exportProductTaxAndMoadian(){
             if (!filename) {
                 filename = 'products.csv';
             }
-    
-            const blob = new Blob([data], { type: 'text/csv;charset=utf-8' }); // Create a Blob from the response data
+            const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+            const blob = new Blob([bom, data], { type: 'text/csv;charset=utf-8' }); 
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             
