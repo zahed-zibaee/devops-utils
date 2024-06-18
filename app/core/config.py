@@ -38,5 +38,22 @@ class Settings(BaseSettings):
     REDIS_PORT: int = 6379
     REDIS_DB: int = 0
     REDIS_PASSWORD: str = ''
-    
+    # Kubernetes
+    API_URL: str = ''
+    API_TOKEN: str = ''
+    # DB aggregations values
+    AG_NAME: str = 'aggregation-sync'
+    AG_IMAGE_NAME: str = 'reg.snapp.supply/aggregation-to-staging:v1'
+    AG_NAMESPACE: str = 'snappsupply-staging'
+    AG_DB_USERNAME: str = 'postgres'
+    AG_DB_HOST: str = 'pg-aggregation.snappsupply-production.svc.cluster.local'
+    AG_FILENAME: str = 'backup.sql'
+    AG_DB_STAGING_HOST: str = 'staging-pg-aggregation.snappsupply-staging.svc.cluster.local'
+    AG_SECRET_NAME: str = 'aggregation-sync'
+    AG_CPU_REQUEST: str = '30m'
+    AG_MEMORY_REQUEST: str = '20Mi'
+    AG_CPU_LIMIT: str = '300m'
+    AG_MEMORY_LIMIT: str = '200Mi'
+    AG_PVC_NAME: str = 'aggregation-sync'
+
 settings = Settings()
