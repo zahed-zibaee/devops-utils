@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 from app.core.logging import logger
 from app.core.config import settings
 from kubernetes import client
+from app.schemas.main import Job
 
 
 
@@ -11,7 +12,21 @@ router = APIRouter()
 
 
 @router.post("/devops-tools/v1/kubernetes/jobs/aggregation/create")
-async def create_aggregation_job():
+async def create_aggregation_schema_job(job: Job):
+
+    if job.type == "schema":
+        job_name = settings.AG_NAME+"-schema"
+        COMMAND = "/backup/backup-schema.sh"
+        IMAGE = settings.AG_IMAGE_SCHEMA
+    elif job.type == "tables":
+        job_name = settings.AG_NAME+"-tables"
+        COMMAND = "/backup/backup-tables.sh"
+        IMAGE = settings.AG_IMAGE_TABLES
+    else:
+        logger.error("Could not identify job name.")
+        raise HTTPException(status_code=500, detail='Job creation failed.')
+    
+
     ENV = [client.V1EnvVar(name='USERNAME', value=settings.AG_DB_USERNAME),
            client.V1EnvVar(name='HOST', value=settings.AG_DB_HOST),
            client.V1EnvVar(name='FILENAME', value=settings.AG_FILENAME),
@@ -32,15 +47,15 @@ async def create_aggregation_job():
     volume = client.V1Volume(
         name="backupdir",
         persistent_volume_claim=client.V1PersistentVolumeClaimVolumeSource(
-            claim_name=settings.AG_PVC_NAME
+            claim_name=job_name
         )
     )
 
     container = client.V1Container(
         name=settings.AG_NAME,
-        image=settings.AG_IMAGE_NAME,
+        image=IMAGE,
         image_pull_policy="IfNotPresent",
-        command=["/bin/sh", "-c", "/backup/backup.sh"],
+        command=["/bin/sh", "-c", COMMAND],
         env=ENV,
         volume_mounts=[client.V1VolumeMount(
             mount_path="/backup/dump",
@@ -55,7 +70,7 @@ async def create_aggregation_job():
     template = client.V1PodTemplateSpec(
         metadata=client.V1ObjectMeta(labels={
             "snapp.supply/app-name": "aggregation-sync",
-            "snapp.supply/app-instance": "aggregation-backup",
+            "snapp.supply/app-instance": "aggregation-backup-schema",
             "snapp.supply/app-type": "backup",
             "snapp.supply/app-environment" : settings.AG_NAMESPACE
             }),
@@ -65,13 +80,12 @@ async def create_aggregation_job():
     )
 
     try:
-        create_job(settings.AG_NAME, settings.AG_NAMESPACE, template)
+        create_job(job_name, settings.AG_NAMESPACE, template)
     except Exception as e:
         logger.error(f"Error occured during creating job: {str(e)}")
         raise HTTPException(status_code=500, detail='Job creation failed.')
     
     return JSONResponse({"Status" : "Created"})
-
 
 
 @router.get("/devops-tools/v1/kubernetes/jobs/aggregation/status/")

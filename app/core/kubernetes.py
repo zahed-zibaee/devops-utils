@@ -38,11 +38,9 @@ def create_job(job_name, job_namespace, job_template):
             body=job,
             namespace=job_namespace)
     except ApiException as e:
-        logger.error(f"Error occured during creating job: {str(e)}")
-        raise HTTPException(status_code=500, detail='Job creation failed.')
+        logger.error(f"APIException occured during creating job: {str(e)}")
     except Exception as e:
         logger.error(f"Error occured during creating job: {str(e)}")
-        raise HTTPException(status_code=500, detail='Job creation failed.')
 
     logger.info("Job created. Status='%s'" % str(api_response.status))
 
