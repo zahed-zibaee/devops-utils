@@ -19,8 +19,10 @@ app.middleware('http')(
     LoggingMiddleware()
 )
 
-app.add_event_handler('shutdown', lambda: await RedisClient.close_redis())
-    
+@app.on_event("shutdown")
+async def shutdown_event():
+    await RedisClient.close_redis()
+        
 @app.get("/api/v1/healthcheck")
 async def get_health():
     """
