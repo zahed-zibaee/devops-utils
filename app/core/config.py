@@ -43,22 +43,24 @@ class Settings(BaseSettings):
     REDIS_DB: int = 0
     REDIS_PASSWORD: str = ''
     # Kubernetes
-    API_URL: str = ''
-    API_TOKEN: str = ''
+    K8S_API_URL: str = ''
+    K8S_API_TOKEN: str = ''
     # DB aggregations values
-    AG_NAME: str = 'aggregation-sync'
-    AG_NAMESPACE: str = ''
-    AG_IMAGE_SCHEMA: str = ''
-    AG_IMAGE_TABLES: str = ''
-    AG_DB_USERNAME: str = ''
-    AG_DB_HOST: str = ''
-    AG_FILENAME: str = 'backup.sql'
-    AG_DB_STAGING_HOST: str = ''
-    AG_SECRET_NAME: str = ''
-    AG_CPU_REQUEST: str = '30m'
-    AG_MEMORY_REQUEST: str = '20Mi'
-    AG_CPU_LIMIT: str = '300m'
-    AG_MEMORY_LIMIT: str = '200Mi'
+    DB_PG_AG_USERNAME: str = ''
+    DB_PG_AG_HOST: str = ''
+    DB_PG_AG_STAGING_HOST: str = ''
+    DB_PG_AG_SECRET_NAME: str = ''
+    # Job Aggregation sync 
+    JOB_AG_SYNC_IMAGE_SCHEMA: str = ''
+    JOB_AG_SYNC_IMAGE_TABLES: str = ''
+    JOB_AG_SYNC_NAME: str = 'aggregation-sync'
+    JOB_AG_SYNC_SOURCE_NAMESPACE: str = 'snappsupply-staging'
+    JOB_AG_SYNC_BK_FILENAME: str = 'backup.sql'
+    # Jobs
+    JOB_CPU_REQUEST: str = '30m'
+    JOB_MEMORY_REQUEST: str = '20Mi'
+    JOB_CPU_LIMIT: str = '300m'
+    JOB_MEMORY_LIMIT: str = '200Mi'
     # Hash
     GIT_HASH: str = get_git_head()
     
