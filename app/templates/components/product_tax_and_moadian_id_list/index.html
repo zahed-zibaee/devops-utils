@@ -21,11 +21,16 @@
     <label for="formFile" class="form-label">Update Data...</label>
     <div class="d-flex">
       <input id="csv-file" class="form-control mx-1" type="file" id="formFile" accept=".csv" required>
-      <button id="upload-button" type="button" class="btn btn-info mx-1" >Upload</button>
+      <button id="upload-button" type="button" class="btn btn-primary mx-1" >Upload</button>
     </div>
   </div>
   </form>
   <div class="m-3">
+    <div id="toolbar">
+      <div class="form-inline" role="form">
+        <button id="export-button" type="button" class="btn btn-primary mx-1" >Export CSV</button>
+      </div>
+    </div>
   <table
     id="table"
     data-toolbar="#toolbar"
@@ -69,6 +74,7 @@
     var $table = $("#table");
     const csvFile = document.getElementById('csv-file');
     const uploadButton = document.getElementById('upload-button');
+    const exportButton = document.getElementById('export-button');
     function initTable() {
       $table.bootstrapTable("destroy").bootstrapTable({
         height: 600,
@@ -91,6 +97,9 @@
     });
     uploadButton.addEventListener('click', () => {
       uploadProductTaxAndMoadian();
+    });
+    exportButton.addEventListener('click', () => {
+      exportProductTaxAndMoadian();
     });
   </script>
 {% endblock %}

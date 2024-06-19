@@ -63,3 +63,37 @@ async def set_cache(key: str, service: str, value: str, expire: int = 60):
             await redis.setex(name=full_key, value=value, time=expire)
         except Exception as e:
             logger.error(f"Error setting Redis cache: {e}")
+
+
+async def lock(key: str, time: int) -> bool:
+    full_key = settings.PROJECT_NAME + ":" + ":lock:" + key
+    try:
+        redis = await RedisClient.get_redis()
+        acquired = await redis.set(full_key, "locked", ex=time, nx=True)
+        if acquired:
+            return True
+        return False
+    except Exception as e:
+        logger.warning(f"Can not lock redis-lock: {e}")
+        return False
+    
+
+async def unlock(key: str) -> None:
+    full_key = settings.PROJECT_NAME + ":" + ":lock:" + key
+    try:
+        redis = await RedisClient.get_redis()
+        await redis.delete(full_key)
+    except Exception as e:
+        logger.warning(f"Can not unlock redis-lock: {e}")
+        
+async def is_locked(key: str) -> bool:
+    full_key = settings.PROJECT_NAME + ":" + ":lock:" + key
+    try:
+        redis = await RedisClient.get_redis()
+        if await redis.exists(full_key):
+            return True
+        return False
+    except Exception as e:
+        logger.warning(f"Can not check redis-lock: {e}")
+        return False
+    

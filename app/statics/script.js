@@ -66,6 +66,7 @@ function inProgress() {
         buttonReset.prop('disabled', true);
     } 
 }
+
 function finishedProgress() {
     if (notEmpty($('#wrapper'))) {
         var wrapper = $("#wrapper");
@@ -108,18 +109,7 @@ function uploadProductTaxAndMoadian() {
         }
     },
     error: function (jqXHR, status, error) {
-        var message;
-        if (jqXHR.status == 422) {
-            message = "Bad CSV file!";
-        } else if (jqXHR.status == 404) {
-            message = "Product not found!";
-        } else if (jqXHR.status == 503) {
-            message = "Can not access database!";
-        } else {
-            message = "Can not import CSV file! check console logs.";
-        }
-        createToast(message, "error", jqXHR.status);
-        console.log(jqXHR.responseJSON);
+        handleErrors(jqXHR.status, jqXHR.responseJSON);
         finishedProgress();
     }
     });
@@ -153,8 +143,7 @@ function updateSettings() {
         }
     },
     error: function (jqXHR, status, error) {
-        createToast('Can not update order lock, check console logs.', "error", jqXHR.status);
-        console.log(jqXHR.responseJSON);
+        handleErrors(jqXHR.status, jqXHR.responseJSON);
         finishedProgress();
     }
     });
@@ -171,6 +160,46 @@ function responseHandler(res) {
   return res;
 }
 
+function exportProductTaxAndMoadian(){
+    const url = prepend_url('/devops-tools/v1/products/tax_and_moadian/export_csv')
+    var xhr = $.ajax({
+        url: url,
+        type: "GET",
+        headers: { Authorization: token },
+        responseType: 'blob',
+        success: function (data, status, xhr) {
+            let filename = '';
+            const disposition = xhr.getResponseHeader('Content-Disposition');
+            if (disposition && disposition.indexOf('attachment') !== -1) {
+                const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                const matches = filenameRegex.exec(disposition);
+                if (matches != null && matches[1]) {
+                    filename = matches[1].replace(/['"]/g, '');
+                }
+            }
+    
+            if (!filename) {
+                filename = 'products.csv';
+            }
+            const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+            const blob = new Blob([bom, data], { type: 'text/csv;charset=utf-8' }); 
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            
+            a.href = url;
+            a.download = filename;
+    
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        },
+        error: function (jqXHR, status, error) {
+            handleErrors(jqXHR.status, jqXHR.responseJSON);
+        }
+    });
+}
+
 function ajaxRequestProductTaxMoadian(params) {
     const url = prepend_url('/devops-tools/v1/products/tax_and_moadian/list')
     $.ajax({
@@ -183,8 +212,7 @@ function ajaxRequestProductTaxMoadian(params) {
             }
         },
         error: function (jqXHR, status, error) {
-            createToast('Can not get product data.', "error", jqXHR.status);
-            console.log(jqXHR.responseJSON);
+            handleErrors(jqXHR.status, jqXHR.responseJSON);
         }
     });
 }
@@ -199,21 +227,15 @@ function ajaxRequestGetOrderLock() {
             200: function (res) {
                 $('#order-lock-in-days').val(res.lock);
                 lastOrderLock = res.lock;
-            },
-            412: function (res) {
-                createToast('Order lock is not equal as legacy lock.', "error", jqXHR.status);
-                console.log(res);
             }
         },
         error: function (jqXHR, status, error) {
-            var message;
-            if (jqXHR.status == 412) {
-                message = "Order lock is not equal as legacy lock!"
-            } else {
-                message = "Can not get product data."
-            }
-            createToast(message, "error", jqXHR.status);
-            console.log(jqXHR.responseJSON);
+            handleErrors(jqXHR.status, jqXHR.responseJSON);
         }
     });
+}
+
+function handleErrors(status, message) {        
+    createToast(message.detail, "error", status);
+    console.error("Error :" + message.detail);
 }

@@ -1,8 +1,12 @@
-from fastapi import APIRouter, Depends, File, UploadFile, HTTPException
+from fastapi import APIRouter, Depends, File, UploadFile, HTTPException, Response
 from sqlalchemy import text, or_, and_, func
 from sqlalchemy.orm import Session
+from datetime import datetime
 
+import pytz
 import pandas as pd
+import io
+import csv
 
 from app.schemas.main import GetProducts, Product
 from app.core.logging import logger
@@ -10,7 +14,7 @@ from app.core.db import get_db_mysql_write, get_db_mysql_read
 
 
 router = APIRouter()
-
+ 
 @router.get("/devops-tools/v1/products/tax_and_moadian/list")
 async def get_products(
     params: GetProducts = Depends(),
@@ -57,6 +61,51 @@ async def get_products(
     logger.info(f'get product list: {str(products_list[:5])} ...')
     return {"rows": products_list, "total": total, "totalNotFiltered": total_not_filtered}
 
+@router.get("/devops-tools/v1/products/tax_and_moadian/export_csv")
+async def get_products(
+    db: Session = Depends(get_db_mysql_read)
+    ):
+    """
+    Exports a list of products from the database to a CSV file.
+
+    The products are filtered to include only those with a status of 0 (active).
+
+    Args:
+        db (Session): A database session dependency for querying the database.
+
+    Returns:
+        Response: A response object containing the CSV file with product details.
+    """
+    try:
+        products = db.query(Product).filter(Product.status == 0).all()       
+    except Exception as e:
+        logger.error('Can not get product list from database: ' + str(e))
+        raise HTTPException(status_code=503, detail='Can not get product list from database.')
+    products_list = [
+        {'ID': p.id, 
+         'Name': p.name, 
+         'Tax Rate': 'Not Defined' if p.tax_rate is None else p.tax_rate, 
+         'Moadian Product ID': p.moadian_product_id, 
+         "State": "Online" if p.state == 1 else "Offline"
+        } for p in products]
+    logger.info(f'export product csv...')
+    tz = pytz.timezone('Asia/Tehran')
+    date_time = datetime.now(tz).strftime('%Y%m%d%H%M')
+    
+    strbuff = io.StringIO()
+    products_csv_data = csv.DictWriter(strbuff, fieldnames=["ID", "Name", "Tax Rate", "Moadian Product ID", "State"])
+    products_csv_data.writeheader()
+    products_csv_data.writerows(products_list)
+    
+    csv_content = strbuff.getvalue().encode('utf-8-sig')
+    strbuff.close()
+    
+    return Response(
+        content=csv_content,
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=products_tax_and_moadian_{date_time}.csv"}
+    )
+
 @router.post("/devops-tools/v1/products/tax_and_moadian/import_csv")
 async def update_products(
     file: UploadFile = File(...), 
@@ -92,10 +141,13 @@ async def update_products(
                     raise HTTPException(status_code=404, detail="Product not found - id={_id}".format(_id=row["id"]))
             except:
                     raise HTTPException(status_code=404, detail="Can not get product {_id} from database".format(_id=row["id"]))
-            product.tax_rate = row["tax_rate"]
-            product.moadian_product_id = row["moadian_product_id"]
-            updated_products.append(product)                    
-            
+            if row["tax_rate"] is not None and row["moadian_product_id"] is not "":
+                product.tax_rate = row["tax_rate"] 
+                product.moadian_product_id = row["moadian_product_id"]
+                updated_products.append(product)     
+            else:
+                pass
+                
     for chunk in pd.read_csv(file.file, chunksize=1000, iterator=True):
         if "ID" not in chunk.columns or "Tax Rate" not in chunk.columns or "Moadian Product ID" not in chunk.columns :
             raise HTTPException(
@@ -108,11 +160,11 @@ async def update_products(
                 if row["Tax Rate"] == "Not Defined":
                     tax_rate = None
                 else:
-                    tax_rate = int(row["Tax Rate"])
+                    tax_rate = int(float(row["Tax Rate"]))
                 if row["Moadian Product ID"] != row["Moadian Product ID"]:
                     moadian_product_id = ""
                 else:
-                    moadian_product_id = int(row["Moadian Product ID"])
+                    moadian_product_id = int(float(row["Moadian Product ID"]))
                 my_chunck.append(
                     {"id": int(row["ID"]), "tax_rate": tax_rate, "moadian_product_id": moadian_product_id}
                 )
@@ -128,7 +180,7 @@ async def update_products(
         db_write.commit()
     except Exception as e:
         logger.error(f"Can not commit data: {e}")
-        raise HTTPException(status_code=503, detail=f"Can not commit data.")
+        raise HTTPException(status_code=503 , detail=f"Can not commit data.")
 
-    return 200, "CSV data successfully processed for updates in 'products' table."
+    return {"detail": "CSV data successfully processed for updates in products table."}
 

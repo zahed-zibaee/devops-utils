@@ -8,6 +8,7 @@ from app.core.redis import get_cache, set_cache
 from app.core.argocd import refresh_app
 from app.core.logging import logger
 from app.schemas.main import EditOrderLock
+from app.core.redis import lock, unlock, is_locked
 
 
 router = APIRouter()
@@ -19,7 +20,7 @@ def receive_gitlab_manifest_data():
         return project
     except Exception as e:
         logger.error(f"Can not get manifest project gitlab data. error: {str(e)}")
-        raise HTTPException(status_code=500, detail='Can not get manifest project gitlab data.')
+        raise HTTPException(status_code=503, detail='Can not get manifest project gitlab data.')
 
 def get_gitlab_file_content_lock(project_name ,manifest_project ,file_path):
     try:
@@ -27,36 +28,50 @@ def get_gitlab_file_content_lock(project_name ,manifest_project ,file_path):
         return file
     except Exception as e:
         logger.error(f"Can not generate {project_name} manifest file data. error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f'Can not generate {project_name} manifest file data.')
+        raise HTTPException(status_code=503, detail=f'Can not generate {project_name} manifest file data.')
     
 @router.put("/devops-tools/v1/order/lock/edit")
 async def order_lock_edit(params: EditOrderLock):
     manifest_project = receive_gitlab_manifest_data() 
-    order_file = get_gitlab_file_content_lock('order', manifest_project, settings.ORDER_FILE_PATH_MANIFEST)
-    legacy_file = get_gitlab_file_content_lock('legacy', manifest_project, settings.LEGACY_FILE_PATH_MANIFEST)
+    try:
+        order_file = get_gitlab_file_content_lock('order', manifest_project, settings.ORDER_FILE_PATH_MANIFEST)
+        legacy_file = get_gitlab_file_content_lock('legacy', manifest_project, settings.LEGACY_FILE_PATH_MANIFEST)
+    except Exception as e:
+        logger.error(f"Can not get manifest files. error: {str(e)}")
+        raise HTTPException(status_code=503, detail='Can not get manifest files.')
     try:
         order_file_decoded = order_file.decode()
         legacy_file_decoded = legacy_file.decode()
     except Exception as e:
         logger.error(f"Can not decode manifest files. error: {str(e)}")
-        raise HTTPException(status_code=500, detail='Can not decode manifest files.')
-    try:
-        new_order_content = re.sub(
-            rb'(?m)^  - name: VALID_((?:BASKET|ORDER))_UPDATE_TIME_IN_DAYS\n    value: "(\d+)"\n', rf'  - name: VALID_\1_UPDATE_TIME_IN_DAYS\n    value: "{params.lock}"\n'.encode(), 
-            order_file_decoded
-        )
-        new_legacy_content = re.sub(
-            rb'(?m)^  - name: VALID_ORDER_UPDATE_TIME_IN_DAYS\n    value: (\d+)\n', rf'  - name: VALID_ORDER_UPDATE_TIME_IN_DAYS\n    value: {params.lock}\n'.encode(), 
-            legacy_file_decoded
-        )
-        legacy_file.content = str(new_legacy_content, encoding="utf-8")
-        order_file.content = str(new_order_content, encoding="utf-8")
-        await set_cache("lock", "order_lock", params.lock, 86400)
-        legacy_file.save(branch="main", commit_message=settings.COMMIT_MESSAGE_CHANGE_ORDER_LOCK)
-        order_file.save(branch="main", commit_message=settings.COMMIT_MESSAGE_CHANGE_ORDER_LOCK)
-    except Exception as e:
-        logger.error(f"Can not save manifest files. error: {str(e)}")
-        raise HTTPException(status_code=500, detail='Can not save manifest files.')
+        raise HTTPException(status_code=503, detail='Can not decode manifest files.')
+    new_order_content = re.sub(
+        rb'(?m)^  - name: VALID_((?:BASKET|ORDER))_UPDATE_TIME_IN_DAYS\n    value: "(\d+)"\n', rf'  - name: VALID_\1_UPDATE_TIME_IN_DAYS\n    value: "{params.lock}"\n'.encode(), 
+        order_file_decoded
+    )
+    new_legacy_content = re.sub(
+        rb'(?m)^  - name: VALID_ORDER_UPDATE_TIME_IN_DAYS\n    value: (\d+)\n', rf'  - name: VALID_ORDER_UPDATE_TIME_IN_DAYS\n    value: {params.lock}\n'.encode(), 
+        legacy_file_decoded
+    )
+    legacy_file.content = str(new_legacy_content, encoding="utf-8")
+    order_file.content = str(new_order_content, encoding="utf-8")
+    await set_cache("lock", "order_lock", params.lock, 86400)
+    logger.info("acquiring lock for git manifest project.")
+    logger.info(await is_locked('GIT_MANIFEST_PROJECT'))
+    if not await is_locked("GIT_MANIFEST_PROJECT"):
+        try:
+            await lock("GIT_MANIFEST_PROJECT", 60)
+            logger.info(await is_locked('GIT_MANIFEST_PROJECT'))
+            legacy_file.save(branch="main", commit_message=settings.COMMIT_MESSAGE_CHANGE_ORDER_LOCK)
+            order_file.save(branch="main", commit_message=settings.COMMIT_MESSAGE_CHANGE_ORDER_LOCK)
+        except Exception as e:
+            logger.error(f"Can not save manifest files. error: {str(e)}")
+            raise HTTPException(status_code=503, detail='Can not save manifest files.')
+        finally:
+            await unlock("GIT_MANIFEST_PROJECT")
+            logger.info(await is_locked('GIT_MANIFEST_PROJECT'))
+    else:
+        raise HTTPException(status_code=409, detail="Operation is already in progress")
     refresh_app(settings.ORDER_ARGOCD_APP_NAME)
     refresh_app(settings.LEGACY_ARGOCD_APP_NAME)
     logger.warning(f"Order lock time changed to {params.lock} days.")

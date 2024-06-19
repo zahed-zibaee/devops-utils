@@ -1,5 +1,9 @@
 from pydantic_settings import BaseSettings
 
+
+def get_git_head():
+    with open('app/git-head', 'r') as file:
+        return file.read()
 class Settings(BaseSettings):
     PROJECT_NAME: str = 'devops-utils'
     PORT: int = 8000
@@ -55,5 +59,8 @@ class Settings(BaseSettings):
     AG_MEMORY_REQUEST: str = '20Mi'
     AG_CPU_LIMIT: str = '300m'
     AG_MEMORY_LIMIT: str = '200Mi'
+    # Hash
+    GIT_HASH: str = get_git_head()
+    
 
 settings = Settings()
