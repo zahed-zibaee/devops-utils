@@ -141,10 +141,13 @@ async def update_products(
                     raise HTTPException(status_code=404, detail="Product not found - id={_id}".format(_id=row["id"]))
             except:
                     raise HTTPException(status_code=404, detail="Can not get product {_id} from database".format(_id=row["id"]))
-            product.tax_rate = row["tax_rate"]
-            product.moadian_product_id = row["moadian_product_id"]
-            updated_products.append(product)                    
-            
+            if row["tax_rate"] is not None and row["moadian_product_id"] is not "":
+                product.tax_rate = row["tax_rate"] 
+                product.moadian_product_id = row["moadian_product_id"]
+                updated_products.append(product)     
+            else:
+                pass
+                
     for chunk in pd.read_csv(file.file, chunksize=1000, iterator=True):
         if "ID" not in chunk.columns or "Tax Rate" not in chunk.columns or "Moadian Product ID" not in chunk.columns :
             raise HTTPException(
