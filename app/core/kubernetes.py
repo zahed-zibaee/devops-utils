@@ -76,10 +76,6 @@ def job_status(job_name, namespace):
                 data["Last Transition Time"] = condition.last_transition_time
         else:
             logger.info("No conditions available for this job.")
-    
-        print(f"Active: {job.status.active}")
-        print(f"Succeeded: {job.status.succeeded}")
-        print(f"Failed: {job.status.failed}")
 
         if job.status.active:
             data["Active"] = job.status.active
