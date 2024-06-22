@@ -32,7 +32,7 @@ async def create_aggregation_schema_job(job: Job):
 
     CONFIG_MAP_ENV = k8s_client.V1EnvFromSource(
         secret_ref = k8s_client.V1SecretEnvSource(
-        name=settings.JOB_AG_CONFIG_MAP_NAME
+        name=settings.JOB_AG_CONFIG_MAP
         )
     )
 

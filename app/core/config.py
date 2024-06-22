@@ -52,7 +52,7 @@ class Settings(BaseSettings):
     DB_PG_AG_SECRET_NAME: str = ''
     # Job Aggregation sync 
     JOB_AG_SECRET: str = ''
-    JOB_AG_CONFIG_MAP_NAME: str = ''
+    JOB_AG_CONFIG_MAP: str = ''
     JOB_AG_SYNC_IMAGE_SCHEMA: str = ''
     JOB_AG_SYNC_IMAGE_TABLES: str = ''
     JOB_AG_SYNC_NAME: str = 'aggregation-sync'
