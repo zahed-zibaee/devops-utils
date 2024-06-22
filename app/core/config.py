@@ -51,11 +51,12 @@ class Settings(BaseSettings):
     DB_PG_AG_STAGING_HOST: str = ''
     DB_PG_AG_SECRET_NAME: str = ''
     # Job Aggregation sync 
+    JOB_AG_SECRET: str = ''
+    JOB_AG_CONFIG_MAP_NAME: str = ''
     JOB_AG_SYNC_IMAGE_SCHEMA: str = ''
     JOB_AG_SYNC_IMAGE_TABLES: str = ''
     JOB_AG_SYNC_NAME: str = 'aggregation-sync'
     JOB_AG_SYNC_SOURCE_NAMESPACE: str = 'snappsupply-staging'
-    JOB_AG_SYNC_BK_FILENAME: str = 'backup.sql'
     # Jobs
     JOB_CPU_REQUEST: str = '30m'
     JOB_MEMORY_REQUEST: str = '20Mi'

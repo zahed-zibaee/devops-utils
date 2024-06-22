@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from app.core.kubernetes import create_job, job_status
 from app.core.logging import logger
 from app.core.config import settings
-from app.core.kubernetes import client as k8s_client
+from kubernetes import client as k8s_client
 from app.schemas.main import Job
 
 
@@ -23,22 +23,19 @@ async def create_aggregation_schema_job(job: Job):
     else:
         logger.error("Could not identify job name.")
         raise HTTPException(status_code=404, detail='Job type no found!')
-    ENV = [k8s_client.V1EnvVar(name='USERNAME', value=settings.DB_PG_AG_USERNAME),
-           k8s_client.V1EnvVar(name='HOST', value=settings.DB_PG_AG_HOST),
-           k8s_client.V1EnvVar(name='FILENAME', value=settings.JOB_AG_SYNC_BK_FILENAME),
-           k8s_client.V1EnvVar(name='STAGING_HOST', value=settings.DB_PG_AG_STAGING_HOST),
-           k8s_client.V1EnvVar(name='PASSWORD', value_from=k8s_client.V1EnvVarSource(
-               secret_key_ref=k8s_client.V1SecretKeySelector(
-                   name=settings.DB_PG_AG_SECRET_NAME,
-                   key='PASSWORD'
-               )
-           )),
-           k8s_client.V1EnvVar(name='STAGING_PASSWORD', value_from=k8s_client.V1EnvVarSource(
-               secret_key_ref=k8s_client.V1SecretKeySelector(
-                   name=settings.DB_PG_AG_SECRET_NAME,
-                   key='STAGING_PASSWORD'
-               )
-           ))]
+
+    SECRET_ENV = k8s_client.V1EnvFromSource(
+        secret_ref = k8s_client.V1SecretEnvSource(
+        name=settings.JOB_AG_SECRET
+        )
+    )
+
+    CONFIG_MAP_ENV = k8s_client.V1EnvFromSource(
+        secret_ref = k8s_client.V1SecretEnvSource(
+        name=settings.JOB_AG_CONFIG_MAP_NAME
+        )
+    )
+
     volume = k8s_client.V1Volume(
         name="backupdir",
         persistent_volume_claim=k8s_client.V1PersistentVolumeClaimVolumeSource(
@@ -50,9 +47,9 @@ async def create_aggregation_schema_job(job: Job):
         image=IMAGE,
         image_pull_policy="IfNotPresent",
         command=["/bin/sh", "-c", COMMAND],
-        env=ENV,
+        env_from=[SECRET_ENV, CONFIG_MAP_ENV],
         volume_mounts=[k8s_client.V1VolumeMount(
-            mount_path="/backup/dump",
+             mount_path="/backup/dump",
             name="backupdir"
         )],
         resources=k8s_client.V1ResourceRequirements(

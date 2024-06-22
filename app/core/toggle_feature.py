@@ -1,4 +1,4 @@
-from app.routers import kubernetes, order_lock, product_tax_moadian, prometheus, components_routes, component
+from app.routers import job_sync_aggregation_schema, order_lock, product_tax_moadian, prometheus, components_routes, component
 from app.core.feature_status import feature_status
 
 def get_active_features():
@@ -14,5 +14,5 @@ def get_active_features():
     if feature_status('component'):
         features.append(component)
     if feature_status('kubernetes'):
-        features.append(kubernetes)
+        features.append(job_sync_aggregation_schema)
     return features
