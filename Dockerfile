@@ -1,5 +1,4 @@
-#FROM tiangolo/uvicorn-gunicorn-fastapi:python3.11
-FROM registry.teh-1.snappcloud.io/fra-1/tiangolo/uvicorn-gunicorn-fastapi:python3.11
+FROM tiangolo/uvicorn-gunicorn-fastapi:python3.11
 
 WORKDIR /app
 
