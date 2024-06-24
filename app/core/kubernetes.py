@@ -1,4 +1,3 @@
-from datetime import datetime
 from kubernetes import client as k8s_client
 from kubernetes.client.rest import ApiException
 
@@ -21,7 +20,7 @@ def create_job(job_name, job_namespace, job_template) -> int:
     job = k8s_client.V1Job(
         api_version="batch/v1",
         kind="Job",
-        metadata=k8s_client.V1ObjectMeta(name=job_name+"-"+job_time()),
+        metadata=k8s_client.V1ObjectMeta(name=job_name),
         spec=job_spec
     )
     try:
@@ -38,8 +37,7 @@ def create_job(job_name, job_namespace, job_template) -> int:
     logger.info("Job created. Status='%s'" % str(api_response.status))
     return api_response.status
 
-def job_time():
-    return datetime.now().strftime("%Y%m%d%H%M%S")
+
 
 def job_status(job_name, namespace):
     try:

@@ -1,42 +1,75 @@
-{% extends "base/base.html" %} {% block content %}
+{% extends "base/base.html" %}
+{% block content %}
 <div class="starter-template my-3">
   <h1>{{ title }}</h1>
   <p class="lead">{{ description }}</p>
 </div>
 <div class="container px-3">
-  <h3>Order</h3>
-  <form class="m-3" method="put" enctype="multipart/form-data">
-    <div class="mb-3">
-      <div class="input-group d-flex">
-        <span class="input-group-text" id="basic-addon1">Order Lock</span>
-        <input
-          id="order-lock-in-days"
-          type="number"
-          class="form-control"
-          value=""
-          aria-label="lock"
-          aria-describedby="basic-addon1"
-          min="0"
-          max="1000"
-          required
-        />
-        <span class="input-group-text" id="basic-addon1">day(s)</span>
+  <ul class="nav nav-tabs" id="myTab" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="order-tab" data-bs-toggle="tab" data-bs-target="#order" type="button" role="tab" aria-controls="order" aria-selected="true">Order</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="schema-tab" data-bs-toggle="tab" data-bs-target="#schema" type="button" role="tab" aria-controls="schema" aria-selected="false">Aggregation</button>
+    </li>
+  </ul>
+  <div class="tab-content" id="myTabContent">
+    <div class="tab-pane fade show active" id="order" role="tabpanel" aria-labelledby="order-tab">
+      <form class="m-3" method="put" enctype="multipart/form-data">
+        <div class="mb-3">
+          <div class="input-group d-flex">
+            <span class="input-group-text" id="basic-addon1">Order Lock</span>
+            <input
+              id="order-lock-in-days"
+              type="number"
+              class="form-control"
+              value=""
+              aria-label="lock"
+              aria-describedby="basic-addon1"
+              min="0"
+              max="1000"
+              required
+            />
+            <span class="input-group-text" id="basic-addon1">day(s)</span>
+          </div>
+        </div>
+      </form>
+      <div class="d-flex justify-content-end">
+        <button id="upload-button" type="button" class="btn btn-primary mx-1">
+          Update
+        </button>
+        <button id="reset-button" type="button" class="btn btn-secondary mx-1">
+          Reset
+        </button>
       </div>
     </div>
-  </form>
-  <div class="d-flex justify-content-end">
-    <button id="upload-button" type="button" class="btn btn-primary mx-1">
-      Update
-    </button>
-    <button id="reset-button" type="button" class="btn btn-secondary mx-1">
-      Reset
-    </button>
+    <div class="tab-pane fade" id="schema" role="tabpanel" aria-labelledby="schema-tab">
+      <div class="d-flex justify-content-end m-3">
+        <button id="sync-tables-button" type="button" class="btn btn-primary mx-1">
+          Sync Tables
+        </button>
+        <button id="sync-schema-button" type="button" class="btn btn-primary mx-1">
+          Sync Schema
+        </button>
+      </div>
+    </div>
   </div>
 </div>
+
+<!-- Bootstrap Toast -->
+<div class="toast-container position-fixed top-0 end-0 p-3" id="toastContainer">
+  <!-- Toasts will be dynamically added here -->
+</div>
+
 <script>
   const uploadButton = document.getElementById("upload-button");
   const resetButton = document.getElementById("reset-button");
+  const syncTablesButton = document.getElementById("sync-tables-button");
+  const syncSchemaButton = document.getElementById("sync-schema-button");
   var lastOrderLock = -1;
+  var hostname = "";
+  var token = "";
+
   window.addEventListener("message", function (event) {
     if (!!event.data && !!event.data.hostname && !!event.data.token) {
       hostname = event.data.hostname;
@@ -47,11 +80,21 @@
       console.log("Message received from the parent: " + event.data);
     }
   });
+
   uploadButton.addEventListener("click", () => {
     updateSettings();
   });
+
   resetButton.addEventListener("click", () => {
     resetSettings();
+  });
+
+  syncTablesButton.addEventListener("click", () => {
+    sync('tables');
+  });
+
+  syncSchemaButton.addEventListener("click", () => {
+    sync('schema');
   });
 </script>
 {% endblock %}

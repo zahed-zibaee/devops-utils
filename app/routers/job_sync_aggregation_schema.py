@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
+from datetime import datetime
 
 from app.core.kubernetes import create_job, job_status
 from app.core.logging import logger
@@ -9,6 +10,12 @@ from app.schemas.main import Job
 
 
 router = APIRouter()
+
+
+
+
+def job_time():
+    return datetime.now().strftime("%Y%m%d%H%M%S")
 
 @router.post("/devops-tools/v1/kubernetes/jobs/aggregation/create")
 async def create_aggregation_schema_job(job: Job):
@@ -68,13 +75,16 @@ async def create_aggregation_schema_job(job: Job):
                               containers=[container],
                               volumes=[volume])
         )
+    
+    job_name = job_name+"-"+job_time()
     try:
         create_job(job_name, settings.JOB_AG_SYNC_SOURCE_NAMESPACE, template)
     except Exception as e:
         logger.error(f"Error occured during creating job: {str(e)}")
         raise HTTPException(status_code=503, detail='Job creation failed.')
     
-    return JSONResponse({"Status" : "Created"})
+    return JSONResponse({"Status" : "Created",
+                         "Job" : job_name})
 
 @router.get("/devops-tools/v1/kubernetes/jobs/aggregation/status/")
 async def aggregation_job_status(job_name: str):

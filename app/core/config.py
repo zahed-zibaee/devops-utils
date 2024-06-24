@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     ARGOCD_PASSWORD: str = ''
     ARGOCD_URL: str = ''
     # Gitlab
-    GITLAB_URL: str = ''
+    GITLAB_URL: str = 'https://gitlab.snappcloud.io'
     GITLAB_ACCESS_TOKEN_MANIFEST: str = ''
     GITLAB_PROJECT_ID_MANIFEST: int = 1
     COMMIT_MESSAGE_CHANGE_ORDER_LOCK: str = 'Order lock have been changed by devops utils'
@@ -51,10 +51,10 @@ class Settings(BaseSettings):
     DB_PG_AG_STAGING_HOST: str = ''
     DB_PG_AG_SECRET_NAME: str = ''
     # Job Aggregation sync 
-    JOB_AG_SECRET: str = ''
-    JOB_AG_CONFIG_MAP: str = ''
-    JOB_AG_SYNC_IMAGE_SCHEMA: str = ''
-    JOB_AG_SYNC_IMAGE_TABLES: str = ''
+    JOB_AG_SECRET: str = 'aggregation-sync'
+    JOB_AG_CONFIG_MAP: str = 'aggregation-sync'
+    JOB_AG_SYNC_IMAGE_SCHEMA: str = 'reg.snapp.supply/aggregation-tables-backup:v1'
+    JOB_AG_SYNC_IMAGE_TABLES: str = 'reg.snapp.supply/aggregation-tables-backup:v1'
     JOB_AG_SYNC_NAME: str = 'aggregation-sync'
     JOB_AG_SYNC_SOURCE_NAMESPACE: str = 'snappsupply-staging'
     # Jobs
