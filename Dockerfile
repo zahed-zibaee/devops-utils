@@ -11,7 +11,7 @@ RUN export MYSQLCLIENT_LDFLAGS=`pkg-config mysqlclient --libs`
 
 COPY requirements.txt .
 
-RUN pip install --trusted-host files.pythonhosted.org --upgrade --no-cache-dir pip &&  pip install --trusted-host files.pythonhosted.org --no-cache-dir --upgrade -r requirements.txt
+RUN pip install --trusted-host repo.snapp.tech -i https://repo.snapp.tech/repository/pypi-all/simple/ --upgrade --no-cache-dir pip &&  pip install --trusted-host repo.snapp.tech -i https://repo.snapp.tech/repository/pypi-all/simple/ --no-cache-dir --upgrade -r requirements.txt
 
 COPY . .
 
