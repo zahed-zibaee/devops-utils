@@ -53,7 +53,7 @@ class Settings(BaseSettings):
     # Job Aggregation sync 
     JOB_AG_SECRET: str = 'aggregation-sync'
     JOB_AG_CONFIG_MAP: str = 'aggregation-sync'
-    JOB_AG_SYNC_IMAGE_SCHEMA: str = 'reg.snapp.supply/aggregation-tables-backup:v1'
+    JOB_AG_SYNC_IMAGE_VIEWS: str = 'reg.snapp.supply/aggregation-tables-backup:v1'
     JOB_AG_SYNC_IMAGE_TABLES: str = 'reg.snapp.supply/aggregation-tables-backup:v1'
     JOB_AG_SYNC_NAME: str = 'aggregation-sync'
     JOB_AG_SYNC_SOURCE_NAMESPACE: str = 'snappsupply-staging'

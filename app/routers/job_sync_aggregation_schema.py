@@ -19,10 +19,10 @@ def job_time():
 
 @router.post("/devops-tools/v1/kubernetes/jobs/aggregation/create")
 async def create_aggregation_schema_job(job: Job):
-    if job.type == "schema":
-        job_name = settings.JOB_AG_SYNC_NAME+"-schema"
-        COMMAND = "/backup/backup-schema.sh"
-        IMAGE = settings.JOB_AG_SYNC_IMAGE_SCHEMA
+    if job.type == "views":
+        job_name = settings.JOB_AG_SYNC_NAME+"-view"
+        COMMAND = "/backup/backup-views.sh"
+        IMAGE = settings.JOB_AG_SYNC_IMAGE_VIEWS
     elif job.type == "tables":
         job_name = settings.JOB_AG_SYNC_NAME+"-tables"
         COMMAND = "/backup/backup-tables.sh"
