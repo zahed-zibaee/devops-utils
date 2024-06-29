@@ -248,7 +248,7 @@ function sync(type) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + token
+        'Authorization': token
       },
       body: JSON.stringify({ type: type })
     })
@@ -270,7 +270,7 @@ function sync(type) {
     const statusUrl = prepend_url('/devops-tools/v1/kubernetes/jobs/aggregation/status/');
     fetch(statusUrl+`?job_name=${jobName}`, {
       headers: {
-        'Authorization': 'Bearer ' + token
+        'Authorization': token
       }
     })
     .then(response => response.json())
