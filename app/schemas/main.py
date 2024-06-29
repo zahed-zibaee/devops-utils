@@ -4,6 +4,7 @@ from fastapi import Query
 from sqlalchemy import Column, Integer, String, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 
+
 Base = declarative_base()
 
 class GetProducts(BaseModel):
@@ -26,3 +27,6 @@ class Product(Base):
 
 class EditOrderLock(BaseModel):
     lock: conint(ge=0, le=10000)
+
+class Job(BaseModel):
+    type: str

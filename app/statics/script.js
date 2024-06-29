@@ -239,3 +239,100 @@ function handleErrors(status, message) {
     createToast(message.detail, "error", status);
     console.error("Error :" + message.detail);
 }
+
+// Aggregation sync functions
+
+function sync(type) {
+    const url = prepend_url('/devops-tools/v1/kubernetes/jobs/aggregation/create')
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify({ type: type })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.Status === 'Created') {
+        createOrUpdateToast(data.Job);
+        checkJobStatus(data.Job);
+      } else {
+        console.error('Job creation failed:', data);
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
+  }
+
+  function checkJobStatus(jobName) {
+    const statusUrl = prepend_url('/devops-tools/v1/kubernetes/jobs/aggregation/status/');
+    fetch(statusUrl+`?job_name=${jobName}`, {
+      headers: {
+        'Authorization': 'Bearer ' + token
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      updateJobStatus(data, jobName);
+      if (data.Status !== 'Completed' && data.Status !== 'Failed') {
+        setTimeout(() => checkJobStatus(jobName), 10000);
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
+  }
+
+  function createOrUpdateToast(jobName) {
+    let existingToast = document.getElementById(`toast-${jobName}`);
+    if (!existingToast) {
+      const toastContainer = document.getElementById("toastContainer");
+      existingToast = document.createElement("div");
+      existingToast.className = "toast";
+      existingToast.id = `toast-${jobName}`;
+      existingToast.role = "alert";
+      existingToast.setAttribute("aria-live", "assertive");
+      existingToast.setAttribute("aria-atomic", "true");
+      existingToast.innerHTML = `
+        <div class="toast-header">
+          <strong class="me-auto">Job: ${jobName}</strong>
+          <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body" id="toast-body-${jobName}">
+          <div id="status-bar-${jobName}" class="status-bar"></div>
+          <!-- Job status will be displayed here -->
+          <div id="status-content-${jobName}"></div>
+        </div>
+      `;
+      toastContainer.appendChild(existingToast);
+      var toast = new bootstrap.Toast(existingToast, { autohide: false });
+      toast.show();
+    }
+  }
+
+  function updateJobStatus(data, jobName) {
+    const statusContent = document.getElementById(`status-content-${jobName}`);
+    const statusBar = document.getElementById(`status-bar-${jobName}`);
+    const toast = document.getElementById(`toast-${jobName}`);
+    let statusHTML = ``;
+    statusBar.innerHTML = `<i class="bi bi-hourglass-split h5"></i>Status: Waiting`;
+
+    if (data.Active) {
+      statusBar.innerHTML = `<i class="bi bi-hourglass-split h5"></i> Status: Pending`;
+      toast.classList.add('bg-warning', 'text-white');
+      toast.classList.remove('bg-danger', 'bg-success');
+    }
+    if (data.Succeeded) {
+      statusBar.innerHTML = `<i style = "color:green;" class="bi bi-check-circle-fill text-success fs-3"></i> Status: Succeeded`; // Bootstrap success icon
+      toast.classList.add('bg-success', 'text-white');
+      toast.classList.remove('bg-danger', 'bg-warning');
+    }
+    if (data.Failed) {
+      statusBar.innerHTML = `<i style = "color:red;" class="bi bi-exclamation-circle-fill text-danger fs-3"></i> Status: Failed`; // Bootstrap error icon
+      toast.classList.add('bg-danger', 'text-dark');
+      toast.classList.remove('bg-success', 'bg-warning');
+    }
+    statusContent.innerHTML = statusHTML;
+  }
