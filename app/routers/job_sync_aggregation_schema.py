@@ -91,4 +91,7 @@ async def aggregation_job_status(job_name: str):
     status = job_status(job_name, settings.JOB_AG_SYNC_SOURCE_NAMESPACE)
     if status not in range(200, 299) and type(status) == int:
         raise HTTPException(status_code=503, detail=f'Failed to get the job status. {str(status)}')
+    if status['Last Transition Time']:
+        last_transition_time_str = status['Last Transition Time'].isoformat()
+        status['Last Transition Time'] = last_transition_time_str
     return JSONResponse(status)
