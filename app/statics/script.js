@@ -317,20 +317,20 @@ function sync(type) {
     const statusBar = document.getElementById(`status-bar-${jobName}`);
     const toast = document.getElementById(`toast-${jobName}`);
     let statusHTML = ``;
-    statusBar.innerHTML = `<i class="bi bi-hourglass-split h5"></i>Status: Waiting`;
+    statusBar.innerHTML = `<i class="bi bi-hourglass-split h5"></i><span style="font-family: 'Roboto', sans-serif; font-size: 16px;">Status: Waiting</span>`;
 
     if (data.Active) {
-      statusBar.innerHTML = `<i class="bi bi-hourglass-split h5"></i> Status: Pending`;
+      statusBar.innerHTML = `<i class="bi bi-hourglass-split h5"></i><span style="font-family: 'Roboto', sans-serif; font-size: 16px;">Status: Pending</span>`;
       toast.classList.add('bg-warning', 'text-white');
       toast.classList.remove('bg-danger', 'bg-success');
     }
     if (data.Succeeded) {
-      statusBar.innerHTML = `<i style = "color:green;" class="bi bi-check-circle-fill text-success fs-3"></i> Status: Succeeded`; // Bootstrap success icon
+      statusBar.innerHTML = `<i class="bi bi-check2-circle h5"></i><span style="font-family: 'Roboto', sans-serif; font-size: 16px;">Status: Succeeded</span>`;
       toast.classList.add('bg-success', 'text-white');
       toast.classList.remove('bg-danger', 'bg-warning');
     }
     if (data.Failed) {
-      statusBar.innerHTML = `<i style = "color:red;" class="bi bi-exclamation-circle-fill text-danger fs-3"></i> Status: Failed`; // Bootstrap error icon
+      statusBar.innerHTML = `<i class="bi bi-exclamation-triangle-fill h5"></i><span style="font-family: 'Roboto', sans-serif; font-size: 16px;">Status: Failed</span>`; // Bootstrap error icon
       toast.classList.add('bg-danger', 'text-dark');
       toast.classList.remove('bg-success', 'bg-warning');
     }
