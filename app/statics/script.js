@@ -277,16 +277,18 @@ function sync(type) {
     .then(data => {
         if (data) {
             updateJobStatus(data, jobName);
-            if (data.Status !== 'Completed' && data.Status !== 'Failed') {
-                setTimeout(() => checkJobStatus(jobName), 10000);
+            if (data.Succeeded || data.Failed) {
+                console.log(`Job ${jobName} has status: ${data.Status}. Stopping further requests.`);
+                return;
             }
         } else {
             console.error('Data is null or undefined');
-            setTimeout(() => checkJobStatus(jobName), 10000);
         }
+        setTimeout(() => checkJobStatus(jobName), 10000);
     })
     .catch(error => {
         console.error('Error:', error);
+        setTimeout(() => checkJobStatus(jobName), 10000);
     });
 }
 
