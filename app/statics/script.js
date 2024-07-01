@@ -268,22 +268,27 @@ function sync(type) {
 
   function checkJobStatus(jobName) {
     const statusUrl = prepend_url('/devops-tools/v1/kubernetes/jobs/aggregation/status/');
-    fetch(statusUrl+`?job_name=${jobName}`, {
-      headers: {
-        'Authorization': token
-      }
+    fetch(statusUrl + `?job_name=${jobName}`, {
+        headers: {
+            'Authorization': token
+        }
     })
     .then(response => response.json())
     .then(data => {
-      updateJobStatus(data, jobName);
-      if (data.Status !== 'Completed' && data.Status !== 'Failed') {
-        setTimeout(() => checkJobStatus(jobName), 10000);
-      }
+        if (data) {
+            updateJobStatus(data, jobName);
+            if (data.Status !== 'Completed' && data.Status !== 'Failed') {
+                setTimeout(() => checkJobStatus(jobName), 10000);
+            }
+        } else {
+            console.error('Data is null or undefined');
+            setTimeout(() => checkJobStatus(jobName), 10000);
+        }
     })
     .catch(error => {
-      console.error('Error:', error);
+        console.error('Error:', error);
     });
-  }
+}
 
   function createOrUpdateToast(jobName) {
     let existingToast = document.getElementById(`toast-${jobName}`);
