@@ -2,3 +2,20 @@ include:
   - project: 'snapp-supply/devops/gitlab-ci-files'
     file:
       - 'samples/default.yml'
+
+radar:
+  variables:
+    CONTAINER_SCANNING_IMAGE_NAME: "$IMAGE_ADDR"
+    CONTAINER_SCANNING_REGISTRY: "$REGISTRY_URL"
+    CONTAINER_SCANNING_USERNAME: "$REGISTRY_USER"
+    CONTAINER_SCANNING_PASSWORD: "$REGISTRY_PASS"
+  stage: radar
+  trigger:
+      include: 
+        - project: 'security/AppSec'
+          file: 
+          - 'sast.yml'
+          - 'secret-detection.yml'
+          - 'iac-scanning.yml'
+          - 'sca.yml'
+          - 'container-scanning.yml'
