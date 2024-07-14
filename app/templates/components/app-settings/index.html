@@ -1,37 +1,62 @@
-{% extends "base/base.html" %}
-{% block content %}
+{% extends "base/base.html" %} {% block content %}
 <div class="starter-template my-3">
   <h1>{{ title }}</h1>
-  <p class="lead">{{ description }}</p>
+  <p class="lead mb-4">{{ description }}</p>
 </div>
-<div class="container px-3">
+<div class="">
   <ul class="nav nav-tabs" id="myTab" role="tablist">
     <li class="nav-item" role="presentation">
-      <button class="nav-link active" id="order-tab" data-bs-toggle="tab" data-bs-target="#order" type="button" role="tab" aria-controls="order" aria-selected="true">Order</button>
+      <button
+        class="nav-link active"
+        id="order-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#order"
+        type="button"
+        role="tab"
+        aria-controls="order"
+        aria-selected="true"
+      >
+        Order
+      </button>
     </li>
     <li class="nav-item" role="presentation">
-      <button class="nav-link" id="schema-tab" data-bs-toggle="tab" data-bs-target="#schema" type="button" role="tab" aria-controls="schema" aria-selected="false">Aggregation</button>
+      <button
+        class="nav-link"
+        id="schema-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#schema"
+        type="button"
+        role="tab"
+        aria-controls="schema"
+        aria-selected="false"
+      >
+        Aggregation
+      </button>
     </li>
   </ul>
-  <div class="tab-content" id="myTabContent">
-    <div class="tab-pane fade show active" id="order" role="tabpanel" aria-labelledby="order-tab">
-      <form class="m-3" method="put" enctype="multipart/form-data">
-        <div class="mb-3">
-          <div class="input-group d-flex">
-            <span class="input-group-text" id="basic-addon1">Order Lock</span>
-            <input
-              id="order-lock-in-days"
-              type="number"
-              class="form-control"
-              value=""
-              aria-label="lock"
-              aria-describedby="basic-addon1"
-              min="0"
-              max="1000"
-              required
-            />
-            <span class="input-group-text" id="basic-addon1">day(s)</span>
-          </div>
+  <div class="tab-content mb-3 mt-4" id="myTabContent">
+    <div
+      class="tab-pane fade show active"
+      id="order"
+      role="tabpanel"
+      aria-labelledby="order-tab"
+    >
+      <form class="my-3" method="put" enctype="multipart/form-data">
+        <div class="form-floating input-wrapper">
+          <input
+            id="order-lock-in-days"
+            type="number"
+            class="form-control"
+            value=""
+            aria-label="lock"
+            aria-describedby="basic-addon1"
+            min="0"
+            max="1000"
+            required
+            placeholder="day(s)"
+          />
+          <label for="order-lock-in-days">Order Lock</label>
+          <span class="unit-label">day(s)</span>
         </div>
       </form>
       <div class="d-flex justify-content-end">
@@ -43,12 +68,25 @@
         </button>
       </div>
     </div>
-    <div class="tab-pane fade" id="schema" role="tabpanel" aria-labelledby="schema-tab">
-      <div class="d-flex justify-content-end m-3">
-        <button id="sync-tables-button" type="button" class="btn btn-primary mx-1">
+    <div
+      class="tab-pane fade"
+      id="schema"
+      role="tabpanel"
+      aria-labelledby="schema-tab"
+    >
+      <div class="d-flex justify-content-end my-3">
+        <button
+          id="sync-tables-button"
+          type="button"
+          class="btn btn-primary mx-1"
+        >
           Sync Tables
         </button>
-        <button id="sync-views-button" type="button" class="btn btn-primary mx-1">
+        <button
+          id="sync-views-button"
+          type="button"
+          class="btn btn-primary mx-1"
+        >
           Sync Views
         </button>
       </div>
@@ -90,11 +128,11 @@
   });
 
   syncTablesButton.addEventListener("click", () => {
-    sync('tables');
+    sync("tables");
   });
 
   syncSchemaButton.addEventListener("click", () => {
-    sync('views');
+    sync("views");
   });
 </script>
 {% endblock %}
