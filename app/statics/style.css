@@ -180,7 +180,7 @@
 .form-floating>.form-control~label ,.form-floating > .form-control:not(:placeholder-shown) ~ label, .form-floating>.form-control:focus~label {
   opacity: 1;
   transform: scale(.85) translateY(-1.3rem) translateX(0.8rem);
-  background: #ffffff8f;
+  background: #ffffffdd;
   padding: 0.3rem;
   padding-bottom: 0;
 }

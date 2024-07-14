@@ -68,7 +68,6 @@
 <script>
   var $table = $("#table");
   const csvFile = document.getElementById("csv-file");
-  const uploadButton = document.getElementById("upload-button");
   const exportButton = document.getElementById("export-button");
   function initTable() {
     $table.bootstrapTable("destroy").bootstrapTable({
@@ -90,7 +89,7 @@
       console.log("Message received from the parent: " + event.data);
     }
   });
-  uploadButton.addEventListener("click", () => {
+  csvFile.addEventListener("change", () => {
     uploadProductTaxAndMoadian();
   });
   exportButton.addEventListener("click", () => {
