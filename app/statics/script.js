@@ -65,6 +65,8 @@ function createOrUpdateToastTask(status, jobName) {
         existingToast.querySelector('.alert').classList.add("alert-light");
         existingToast.querySelector('.svg-icon').classList.add('bi-hourglass-split');
         existingToast.querySelector('.alert-message').textContent = 'Job ' + jobName + ' Status: Active';
+        const bsToast = new bootstrap.Toast(existingToast, { autohide: false });
+        bsToast.show();
     } else if (status == 'pending') {
         existingToast.querySelector('.alert').classList.add("alert-warning");
         existingToast.querySelector('.alert').classList.remove('alert-light');
@@ -72,22 +74,19 @@ function createOrUpdateToastTask(status, jobName) {
     } else if (status == 'succeeded') {
         existingToast.querySelector('.alert').classList.add("alert-success");
         existingToast.querySelector('.alert').classList.remove("alert-warning");
+        existingToast.querySelector('.alert').classList.remove('alert-light');
         existingToast.querySelector('.svg-icon').classList.add('bi-check2-circle');
         existingToast.querySelector('.alert-message').textContent = 'Job ' + jobName + ' Status: Succeeded';
         existingToast.querySelector('.svg-icon').classList.remove('bi-hourglass-split');
     } else if (status == 'failed') {
         existingToast.querySelector('.alert').classList.add("alert-danger");
         existingToast.querySelector('.alert').classList.remove('alert-warning');
+        existingToast.querySelector('.alert').classList.remove('alert-light');
         existingToast.querySelector('.svg-icon').classList.add('bi-exclamation-triangle-fill');
         existingToast.querySelector('.alert-message').textContent = 'Job ' + jobName + ' Status: Failed';
         existingToast.querySelector('.svg-icon').classList.remove('bi-hourglass-split');
     }
-    // const toastContainer = document.getElementById('toastContainer');
-    // toastContainer.appendChild(existingToast);
-
-    const bsToast = new bootstrap.Toast(existingToast, { autohide: false });
-    bsToast.show();
-
+    
     existingToast.addEventListener('hidden.bs.toast', () => {
         existingToast.remove();
     });
