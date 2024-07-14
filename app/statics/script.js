@@ -52,6 +52,47 @@ function createToast(message, severity, status = 500, delay = 5000) {
     });
 }
 
+function createOrUpdateToastTask(status, jobName) {
+    if (!document.getElementById('toast-' + jobName)) {
+        const toastTemplate = document.getElementById('toastTemplate');
+        const existingToast = toastTemplate.cloneNode(true);
+        existingToast.id = 'toast-' + jobName;  
+        const toastContainer = document.getElementById('toastContainer');
+        toastContainer.appendChild(existingToast);
+    }
+    let existingToast = document.getElementById('toast-' + jobName);
+    if (status == 'active') {
+        existingToast.querySelector('.alert').classList.add("alert-light");
+        existingToast.querySelector('.svg-icon').classList.add('bi-hourglass-split');
+        existingToast.querySelector('.alert-message').textContent = 'Job ' + jobName + ' Status: Active';
+    } else if (status == 'pending') {
+        existingToast.querySelector('.alert').classList.add("alert-warning");
+        existingToast.querySelector('.alert').classList.remove('alert-light');
+        existingToast.querySelector('.alert-message').textContent = 'Job ' + jobName + ' Status: Pending';
+    } else if (status == 'succeeded') {
+        existingToast.querySelector('.alert').classList.add("alert-success");
+        existingToast.querySelector('.alert').classList.remove("alert-warning");
+        existingToast.querySelector('.svg-icon').classList.add('bi-check2-circle');
+        existingToast.querySelector('.alert-message').textContent = 'Job ' + jobName + ' Status: Succeeded';
+        existingToast.querySelector('.svg-icon').classList.remove('bi-hourglass-split');
+    } else if (status == 'failed') {
+        existingToast.querySelector('.alert').classList.add("alert-danger");
+        existingToast.querySelector('.alert').classList.remove('alert-warning');
+        existingToast.querySelector('.svg-icon').classList.add('bi-exclamation-triangle-fill');
+        existingToast.querySelector('.alert-message').textContent = 'Job ' + jobName + ' Status: Failed';
+        existingToast.querySelector('.svg-icon').classList.remove('bi-hourglass-split');
+    }
+    // const toastContainer = document.getElementById('toastContainer');
+    // toastContainer.appendChild(existingToast);
+
+    const bsToast = new bootstrap.Toast(existingToast, { autohide: false });
+    bsToast.show();
+
+    existingToast.addEventListener('hidden.bs.toast', () => {
+        existingToast.remove();
+    });
+}
+
 function inProgress() {
     if (notEmpty($('#wrapper'))) {
         var wrapper = $("#wrapper");
@@ -255,7 +296,7 @@ function sync(type) {
     .then(response => response.json())
     .then(data => {
       if (data.Status === 'Created') {
-        createOrUpdateToast(data.Job);
+        createOrUpdateToastTask('active', data.Job);
         checkJobStatus(data.Job);
       } else {
         console.error('Job creation failed:', data);
@@ -276,7 +317,15 @@ function sync(type) {
     .then(response => response.json())
     .then(data => {
         if (data) {
-            updateJobStatus(data, jobName);
+            if (data.Pending) {
+                createOrUpdateToastTask('Pending', jobName);
+            } else if (data.Succeeded) {
+                createOrUpdateToastTask('succeeded', jobName);
+            } else if (data.Failed) {
+                createOrUpdateToastTask('failed', jobName);
+            } else {
+                createOrUpdateToastTask('active', jobName);
+            }
             if (data.Succeeded || data.Failed) {
                 console.log(`Job ${jobName} has status: ${data.Status}. Stopping further requests.`);
                 return;
@@ -284,62 +333,10 @@ function sync(type) {
         } else {
             console.error('Data is null or undefined');
         }
-        setTimeout(() => checkJobStatus(jobName), 10000);
+        setTimeout(() => checkJobStatus(jobName), 5000);
     })
     .catch(error => {
         console.error('Error:', error);
-        setTimeout(() => checkJobStatus(jobName), 10000);
+        setTimeout(() => checkJobStatus(jobName), 5000);
     });
 }
-
-  function createOrUpdateToast(jobName) {
-    let existingToast = document.getElementById(`toast-${jobName}`);
-    if (!existingToast) {
-      const toastContainer = document.getElementById("toastContainer");
-      existingToast = document.createElement("div");
-      existingToast.className = "toast";
-      existingToast.id = `toast-${jobName}`;
-      existingToast.role = "alert";
-      existingToast.setAttribute("aria-live", "assertive");
-      existingToast.setAttribute("aria-atomic", "true");
-      existingToast.innerHTML = `
-        <div class="toast-header">
-          <strong class="me-auto">Job: ${jobName}</strong>
-          <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-        </div>
-        <div class="toast-body" id="toast-body-${jobName}">
-          <div id="status-bar-${jobName}" class="status-bar"></div>
-          <!-- Job status will be displayed here -->
-          <div id="status-content-${jobName}"></div>
-        </div>
-      `;
-      toastContainer.appendChild(existingToast);
-      var toast = new bootstrap.Toast(existingToast, { autohide: false });
-      toast.show();
-    }
-  }
-
-  function updateJobStatus(data, jobName) {
-    const statusContent = document.getElementById(`status-content-${jobName}`);
-    const statusBar = document.getElementById(`status-bar-${jobName}`);
-    const toast = document.getElementById(`toast-${jobName}`);
-    let statusHTML = ``;
-    statusBar.innerHTML = `<i class="bi bi-hourglass-split h5"></i><span style="font-family: 'Roboto', sans-serif; font-size: 16px;">Status: Waiting</span>`;
-
-    if (data.Active) {
-      statusBar.innerHTML = `<i class="bi bi-hourglass-split h5"></i><span style="font-family: 'Roboto', sans-serif; font-size: 16px;">Status: Pending</span>`;
-      toast.classList.add('bg-warning', 'text-white');
-      toast.classList.remove('bg-danger', 'bg-success');
-    }
-    if (data.Succeeded) {
-      statusBar.innerHTML = `<i class="bi bi-check2-circle h5"></i><span style="font-family: 'Roboto', sans-serif; font-size: 16px;">Status: Succeeded</span>`;
-      toast.classList.add('bg-success', 'text-white');
-      toast.classList.remove('bg-danger', 'bg-warning');
-    }
-    if (data.Failed) {
-      statusBar.innerHTML = `<i class="bi bi-exclamation-triangle-fill h5"></i><span style="font-family: 'Roboto', sans-serif; font-size: 16px;">Status: Failed</span>`; // Bootstrap error icon
-      toast.classList.add('bg-danger', 'text-dark');
-      toast.classList.remove('bg-success', 'bg-warning');
-    }
-    statusContent.innerHTML = statusHTML;
-  }
