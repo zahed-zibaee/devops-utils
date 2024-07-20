@@ -122,9 +122,12 @@ async def update_products(
     Returns:
         str: Message indicating success or error.
     """
-    updated_products = []
+    db_write.execute(text(
+            f"UPDATE {Product().get_table_name()} SET tax_rate = Null, moadian_product_id= \"\";"
+            ))
     # Define function to update data (using pandas for efficiency)
     def update_data(dic_chunk):
+        updated_products = []
         for row in dic_chunk:
             if row["tax_rate"] is not None:
                 if row["tax_rate"] > 100 or row["tax_rate"] < 0:
@@ -141,12 +144,11 @@ async def update_products(
                     raise HTTPException(status_code=404, detail="Product not found - id={_id}".format(_id=row["id"]))
             except:
                     raise HTTPException(status_code=404, detail="Can not get product {_id} from database".format(_id=row["id"]))
-            if row["tax_rate"] is not None and row["moadian_product_id"] != "":
-                product.tax_rate = row["tax_rate"] 
-                product.moadian_product_id = row["moadian_product_id"]
-                updated_products.append(product)     
-            else:
-                pass
+            product.tax_rate = row["tax_rate"] 
+            product.moadian_product_id = row["moadian_product_id"]
+            updated_products.append(product)     
+            return updated_products
+
                 
     for chunk in pd.read_csv(file.file, chunksize=1000, iterator=True):
         if "ID" not in chunk.columns or "Tax Rate" not in chunk.columns or "Moadian Product ID" not in chunk.columns :
@@ -165,22 +167,24 @@ async def update_products(
                     moadian_product_id = ""
                 else:
                     moadian_product_id = int(float(row["Moadian Product ID"]))
-                my_chunck.append(
-                    {"id": int(row["ID"]), "tax_rate": tax_rate, "moadian_product_id": moadian_product_id}
-                )
+                if tax_rate is None and moadian_product_id == "":
+                    pass
+                else:
+                    my_chunck.append(
+                        {"id": int(row["ID"]), 
+                        "tax_rate": tax_rate, 
+                        "moadian_product_id": moadian_product_id}
+                    )
         except Exception as e:
             logger.error(f"Bad CSV file: {e}")
             raise HTTPException(status_code=422, detail=f"Bad CSV file.")
-        update_data(my_chunck)
+        if len(my_chunck) != 0:
+            db_write.bulk_save_objects(update_data(my_chunck))
     try:   
-        db_write.execute(text(
-            f"UPDATE {Product().get_table_name()} SET tax_rate = Null, moadian_product_id= \"\";"
-            ))
-        db_write.bulk_save_objects(updated_products)
-        db_write.commit()
+        db_write.commit() 
     except Exception as e:
         logger.error(f"Can not commit data: {e}")
         raise HTTPException(status_code=503 , detail=f"Can not commit data.")
-
+    
     return {"detail": "CSV data successfully processed for updates in products table."}
 
