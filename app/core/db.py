@@ -1,44 +1,71 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.core.config import settings
+from app.core.logging import logger
 
 
 def mysql_url_builder(username , password, host, port, database):
     return f"mysql://{username}:{password}@{host}:{port}/{database}"
     
 engine_mysql_write = create_engine(
-        url = mysql_url_builder(
-            username = settings.DB_MYSQL_WRITE_USERNAME,
-            password = settings.DB_MYSQL_WRITE_PASSWORD,
-            host = settings.DB_MYSQL_WRITE_HOST,
-            port = settings.DB_MYSQL_WRITE_PORT, 
-            database = settings.DB_MYSQL_WRITE_DATABASE
-        )
-    )
+    mysql_url_builder(
+        username=settings.DB_MYSQL_WRITE_USERNAME,
+        password=settings.DB_MYSQL_WRITE_PASSWORD,
+        host=settings.DB_MYSQL_WRITE_HOST,
+        port=settings.DB_MYSQL_WRITE_PORT,
+        database=settings.DB_MYSQL_WRITE_DATABASE
+    ),
+    pool_timeout=1200,  
+    pool_size=5,  
+    max_overflow=10,  
+    pool_recycle=-1,  
+    pool_pre_ping=True,  
+    connect_args={
+        "connect_timeout": 10,
+        "init_command": "SET SESSION innodb_lock_wait_timeout = 1200"
+    }
+)
+
 engine_mysql_read = create_engine(
-        url = mysql_url_builder(
-            username = settings.DB_MYSQL_READ_USERNAME,
-            password = settings.DB_MYSQL_READ_PASSWORD,
-            host = settings.DB_MYSQL_READ_HOST,
-            port = settings.DB_MYSQL_READ_PORT, 
-            database = settings.DB_MYSQL_READ_DATABASE
-        )
-    )
+    mysql_url_builder(
+        username=settings.DB_MYSQL_READ_USERNAME,
+        password=settings.DB_MYSQL_READ_PASSWORD,
+        host=settings.DB_MYSQL_READ_HOST,
+        port=settings.DB_MYSQL_READ_PORT,
+        database=settings.DB_MYSQL_READ_DATABASE
+    ),
+    pool_timeout=60,  
+    pool_size=5,  
+    max_overflow=10,  
+    pool_recycle=-1,  
+    pool_pre_ping=True,  
+    connect_args={
+        "connect_timeout": 10,  
+        "init_command": "SET SESSION innodb_lock_wait_timeout = 120"
+    }
+)
  
-session_mysql_write = sessionmaker(autocommit=False, autoflush=False, bind=engine_mysql_write)
-session_mysql_read = sessionmaker(autocommit=False, autoflush=False, bind=engine_mysql_write)
+SessionLocalWrite = sessionmaker(autocommit=False, autoflush=False, bind=engine_mysql_write)
+SessionLocalRead = sessionmaker(autocommit=False, autoflush=False, bind=engine_mysql_read)
 
 def get_db_mysql_write():
-    db = session_mysql_write()
+    db = SessionLocalWrite()
     try:
         yield db
+    except SQLAlchemyError as e:
+        logger.error(f"Error connecting to the write database: {e}")
+        raise
     finally:
         db.close()
 
 def get_db_mysql_read():
-    db = session_mysql_read()
+    db = SessionLocalRead()
     try:
         yield db
+    except SQLAlchemyError as e:
+        logger.error(f"Error connecting to the write database: {e}")
+        raise
     finally:
         db.close()

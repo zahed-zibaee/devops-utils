@@ -317,7 +317,7 @@ function sync(type) {
     .then(data => {
         if (data) {
             if (data.Pending) {
-                createOrUpdateToastTask('Pending', jobName);
+                createOrUpdateToastTask('pending', jobName);
             } else if (data.Succeeded) {
                 createOrUpdateToastTask('succeeded', jobName);
             } else if (data.Failed) {

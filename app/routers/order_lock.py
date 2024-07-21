@@ -55,23 +55,23 @@ async def order_lock_edit(params: EditOrderLock):
     )
     legacy_file.content = str(new_legacy_content, encoding="utf-8")
     order_file.content = str(new_order_content, encoding="utf-8")
-    await set_cache("lock", "order_lock", params.lock, 86400)
+    set_cache("lock", "order_lock", params.lock, 86400)
     logger.info("acquiring lock for git manifest project.")
-    logger.info(await is_locked('GIT_MANIFEST_PROJECT'))
-    if not await is_locked("GIT_MANIFEST_PROJECT"):
+    logger.info(is_locked('GIT_MANIFEST_PROJECT'))
+    if not is_locked("GIT_MANIFEST_PROJECT"):
         try:
-            await lock("GIT_MANIFEST_PROJECT", 60)
-            logger.info(await is_locked('GIT_MANIFEST_PROJECT'))
+            lock("GIT_MANIFEST_PROJECT", 60)
+            logger.info(is_locked('GIT_MANIFEST_PROJECT'))
             legacy_file.save(branch="main", commit_message=settings.COMMIT_MESSAGE_CHANGE_ORDER_LOCK)
             order_file.save(branch="main", commit_message=settings.COMMIT_MESSAGE_CHANGE_ORDER_LOCK)
         except Exception as e:
             logger.error(f"Can not save manifest files. error: {str(e)}")
             raise HTTPException(status_code=503, detail='Can not save manifest files.')
         finally:
-            await unlock("GIT_MANIFEST_PROJECT")
-            logger.info(await is_locked('GIT_MANIFEST_PROJECT'))
+            unlock("GIT_MANIFEST_PROJECT")
+            logger.info(is_locked('GIT_MANIFEST_PROJECT'))
     else:
-        raise HTTPException(status_code=409, detail="Operation is already in progress")
+        raise HTTPException(status_code=409, detail="Operation GIT_MANIFEST_PROJECT is already in progress")
     refresh_app(settings.ORDER_ARGOCD_APP_NAME)
     refresh_app(settings.LEGACY_ARGOCD_APP_NAME)
     logger.warning(f"Order lock time changed to {params.lock} days.")
@@ -79,7 +79,7 @@ async def order_lock_edit(params: EditOrderLock):
 
 @router.get("/devops-tools/v1/order/lock")
 async def get_lock_time():
-    cached_lock = await get_cache("lock", "order_lock")
+    cached_lock = get_cache("lock", "order_lock")
     if cached_lock:
         return JSONResponse({"lock": cached_lock})
     manifest_project = receive_gitlab_manifest_data()
@@ -95,5 +95,5 @@ async def get_lock_time():
         logger.warning(f"Order lock value is not synced: legacy lock value is {match_legacy_data.group(1).decode()} and order lock value is {match_order_data.group(1).decode()}")
         raise HTTPException(status_code=412, detail='Order lock data is not synced.')
     else:
-        await set_cache("lock", "order_lock", match_order_data.group(1).decode(), 86400)
+        set_cache("lock", "order_lock", match_order_data.group(1).decode(), 86400)
         return JSONResponse({"lock": match_order_data.group(1).decode()})

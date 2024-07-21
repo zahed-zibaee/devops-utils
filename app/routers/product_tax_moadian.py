@@ -1,7 +1,9 @@
-from fastapi import APIRouter, Depends, File, UploadFile, HTTPException, Response
+from fastapi import APIRouter, Depends, File, UploadFile, HTTPException, Response, BackgroundTasks, status
+from fastapi.responses import JSONResponse
 from sqlalchemy import text, or_, and_, func
 from sqlalchemy.orm import Session
 from datetime import datetime
+from typing import List, Dict, Any
 
 import pytz
 import pandas as pd
@@ -11,6 +13,7 @@ import csv
 from app.schemas.main import GetProducts, Product
 from app.core.logging import logger
 from app.core.db import get_db_mysql_write, get_db_mysql_read
+from app.core.redis import lock, unlock, is_locked, set_cache, get_cache
 
 
 router = APIRouter()
@@ -106,11 +109,99 @@ async def get_products(
         headers={"Content-Disposition": f"attachment; filename=products_tax_and_moadian_{date_time}.csv"}
     )
 
-@router.post("/devops-tools/v1/products/tax_and_moadian/import_csv")
+def csv_file_validator(file: UploadFile, chunksize: int = 1000) -> List[Dict[str, Any]]:
+    csv_dic_chunks = []
+    try:
+        content = file.file.read()
+        csv_file = pd.read_csv(io.BytesIO(content), chunksize=chunksize, iterator=True).__next__()
+    except Exception as e:
+        logger.error("Failed to read CSV file: {}".format(e))
+        raise ValueError("Failed to read CSV file")
+
+    required_columns = {"ID", "Tax Rate", "Moadian Product ID"}
+    if not required_columns.issubset(csv_file.columns):
+        logger.error("Bad CSV file: Data columns problem - columns must be 'ID', 'Tax Rate', 'Moadian Product ID'")
+        raise ValueError("CSV file is missing required columns")
+
+    for chunk in pd.read_csv(io.BytesIO(content), chunksize=chunksize, iterator=True):
+        csv_dic = []
+        for _, row in chunk.iterrows():
+            try:
+                product_id = int(row["ID"])
+                
+                moadian_product_id = int(float(row["Moadian Product ID"])) if pd.notna(row["Moadian Product ID"]) else ""
+
+                if row["Tax Rate"] == "Not Defined":
+                    if moadian_product_id == "":
+                        continue
+                    tax_rate = None
+                else:
+                    tax_rate = int(float(row["Tax Rate"]))
+                    if tax_rate > 100 or tax_rate < 0:
+                        logger.error(f"Bad CSV file: Data tax_rate problem - id={product_id}, tax rate={tax_rate}")
+                        raise ValueError("Invalid tax rate")
+
+            except ValueError as e:
+                logger.error(f"Bad CSV file: Data problem - id={product_id}, tax rate={row['Tax Rate']}, moadian_product_id={row['Moadian Product ID']}")
+                raise ValueError(f"Data error in CSV file: {e}")
+
+            csv_dic.append({
+                "id": product_id, 
+                "tax_rate": tax_rate, 
+                "moadian_product_id": moadian_product_id
+            })
+
+        csv_dic_chunks.append(csv_dic)
+
+    return csv_dic_chunks
+    
+def import_csv_product_tax_and_moadian(
+    csv_dic_chunks,
+    db_write = next(get_db_mysql_write()), 
+    db_read = next(get_db_mysql_read())
+    ):
+    def update_data(dic_chunk):
+        updated_products = []
+        for row in dic_chunk:
+            try:
+                product = db_read.query(Product).filter(Product.id == row["id"]).first()
+                if not product:
+                    raise HTTPException(status_code=404, detail="Product not found - id={_id}".format(_id=row["id"]))
+            except:
+                    raise HTTPException(status_code=404, detail="Can not get product {_id} from database".format(_id=row["id"]))
+            product.tax_rate = row["tax_rate"] 
+            product.moadian_product_id = row["moadian_product_id"]
+            updated_products.append(product)
+        return updated_products
+    
+    if not is_locked("PRODUCT_TAX_AND_MOARDIAN_IMPORT_CSV"):
+        try:
+            lock("PRODUCT_TAX_AND_MOARDIAN_IMPORT_CSV", 1200)
+            set_cache("product", "import_tax_and_moadian_csv", "pending", 1200)
+            logger.info(f"Changing PRODUCT_TAX_AND_MOARDIAN_IMPORT_CSV lock to {is_locked('PRODUCT_TAX_AND_MOARDIAN_IMPORT_CSV')}")
+            db_write.execute(text(
+                f"UPDATE {Product().get_table_name()} SET tax_rate = Null, moadian_product_id= \"\";"
+                )
+            )
+            for chunk in csv_dic_chunks:
+                if len(chunk) != 0:
+                    db_write.bulk_save_objects(update_data(chunk))
+            db_write.commit() 
+            set_cache("product", "import_tax_and_moadian_csv", "succeeded", 600)
+        except:
+            db_write.rollback()
+            set_cache("product", "import_tax_and_moadian_csv", "failed", 600)
+            raise
+        finally:
+            unlock("PRODUCT_TAX_AND_MOARDIAN_IMPORT_CSV")
+            logger.info(f"Changing PRODUCT_TAX_AND_MOARDIAN_IMPORT_CSV lock to {is_locked('PRODUCT_TAX_AND_MOARDIAN_IMPORT_CSV')}")
+    else:
+        raise ResourceWarning("Operation PRODUCT_TAX_AND_MOARDIAN_IMPORT_CSV is already in progress.")
+
+@router.post("/devops-tools/v1/products/tax_and_moadian/import_csv", status_code=status.HTTP_201_CREATED)
 async def update_products(
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...), 
-    db_write: Session = Depends(get_db_mysql_write), 
-    db_read: Session = Depends(get_db_mysql_read)
     ):
     """
     Uploads a CSV file and updates data in the 'products' table based on 'id'.
@@ -122,68 +213,15 @@ async def update_products(
     Returns:
         str: Message indicating success or error.
     """
-    db_write.execute(text(
-            f"UPDATE {Product().get_table_name()} SET tax_rate = Null, moadian_product_id= \"\";"
-            ))
-    # Define function to update data (using pandas for efficiency)
-    def update_data(dic_chunk):
-        updated_products = []
-        for row in dic_chunk:
-            if row["tax_rate"] is not None:
-                if row["tax_rate"] > 100 or row["tax_rate"] < 0:
-                    raise HTTPException(
-                        status_code=422, 
-                        detail="Data problem - id={_id} - tax rate={tax_rate}".format(
-                            _id = row["id"], 
-                            tax_rate = row["tax_rate"]
-                        )
-                    )
-            try:
-                product = db_read.query(Product).filter(Product.id == row["id"]).first()
-                if not product:
-                    raise HTTPException(status_code=404, detail="Product not found - id={_id}".format(_id=row["id"]))
-            except:
-                    raise HTTPException(status_code=404, detail="Can not get product {_id} from database".format(_id=row["id"]))
-            product.tax_rate = row["tax_rate"] 
-            product.moadian_product_id = row["moadian_product_id"]
-            updated_products.append(product)
-        return updated_products
-        
-    for chunk in pd.read_csv(file.file, chunksize=1000, iterator=True):
-        if "ID" not in chunk.columns or "Tax Rate" not in chunk.columns or "Moadian Product ID" not in chunk.columns :
-            raise HTTPException(
-                status_code=422, 
-                detail=f"Bad CSV file - check csv columns"
-            ) 
-        my_chunck = []
-        try:
-            for _, row in chunk.iterrows():
-                if row["Tax Rate"] == "Not Defined":
-                    tax_rate = None
-                else:
-                    tax_rate = int(float(row["Tax Rate"]))
-                if row["Moadian Product ID"] != row["Moadian Product ID"]:
-                    moadian_product_id = ""
-                else:
-                    moadian_product_id = int(float(row["Moadian Product ID"]))
-                if tax_rate is None and moadian_product_id == "":
-                    pass
-                else:
-                    my_chunck.append(
-                        {"id": int(row["ID"]), 
-                        "tax_rate": tax_rate, 
-                        "moadian_product_id": moadian_product_id}
-                    )
-        except Exception as e:
-            logger.error(f"Bad CSV file: {e}")
-            raise HTTPException(status_code=422, detail=f"Bad CSV file.")
-        if len(my_chunck) != 0:
-            db_write.bulk_save_objects(update_data(my_chunck))
-    try:   
-        db_write.commit() 
-    except Exception as e:
-        logger.error(f"Can not commit data: {e}")
-        raise HTTPException(status_code=503 , detail=f"Can not commit data.")
+    set_cache("product", "import_tax_and_moadian_csv", "active", 1260)
+    csv_dic_chunks = csv_file_validator(file, chunksize=1000)
+    background_tasks.add_task(
+        import_csv_product_tax_and_moadian, 
+        csv_dic_chunks
+    )
+    return JSONResponse(content={'message': 'Task accepted for processing'}, media_type='application/json')
     
-    return {"detail": "CSV data successfully processed for updates in products table."}
+@router.get("/devops-tools/v1/products/tax_and_moadian/import_csv/status")
+async def update_products_status():
+    return {"status": get_cache("product", "import_tax_and_moadian_csv")}
 

@@ -41,7 +41,7 @@ class Settings(BaseSettings):
     REDIS_HOST: str = 'localhost'
     REDIS_PORT: int = 6379
     REDIS_DB: int = 0
-    REDIS_PASSWORD: str = ''
+    REDIS_PASSWORD: str | None = None
     # Kubernetes
     K8S_API_URL: str = ''
     K8S_API_TOKEN: str = ''
