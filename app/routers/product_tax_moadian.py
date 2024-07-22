@@ -141,7 +141,7 @@ def csv_file_validator(file: UploadFile, chunksize: int = 1000) -> List[Dict[str
                         logger.error(f"Bad CSV file: Data tax_rate problem - id={product_id}, tax rate={tax_rate}")
                         raise ValueError("Invalid tax rate")
 
-            except ValueError as e:
+            except Exception as e:
                 logger.error(f"Bad CSV file: Data problem - id={product_id}, tax rate={row['Tax Rate']}, moadian_product_id={row['Moadian Product ID']}")
                 raise ValueError(f"Data error in CSV file: {e}")
 
@@ -152,7 +152,8 @@ def csv_file_validator(file: UploadFile, chunksize: int = 1000) -> List[Dict[str
             })
 
         csv_dic_chunks.append(csv_dic)
-
+        
+    logger.info(f"csv file is ok with value: {csv_dic_chunks[0]}...")
     return csv_dic_chunks
     
 def import_csv_product_tax_and_moadian(
@@ -166,9 +167,10 @@ def import_csv_product_tax_and_moadian(
             try:
                 product = db_read.query(Product).filter(Product.id == row["id"]).first()
                 if not product:
-                    logger.error()
+                    logger.error("Product not found - id={_id}".format(_id=row["id"]))
                     raise RuntimeError("Product not found - id={_id}".format(_id=row["id"]))
             except:
+                    logger.error("Can not get product {_id} from database".format(_id=row["id"]))
                     raise RuntimeError("Can not get product {_id} from database".format(_id=row["id"]))
             product.tax_rate = row["tax_rate"] 
             product.moadian_product_id = row["moadian_product_id"]
@@ -189,7 +191,8 @@ def import_csv_product_tax_and_moadian(
                     db_write.bulk_save_objects(update_data(chunk))
             db_write.commit() 
             set_cache("product", "import_tax_and_moadian_csv", "succeeded", 600)
-        except:
+        except Exception as e:
+            logger.info(f"Import CSV file tax and moadian failed cause: {e}")  
             db_write.rollback()
             set_cache("product", "import_tax_and_moadian_csv", "failed", 600)
             raise
@@ -197,6 +200,7 @@ def import_csv_product_tax_and_moadian(
             unlock("PRODUCT_TAX_AND_MOARDIAN_IMPORT_CSV")
             logger.info(f"Changing PRODUCT_TAX_AND_MOARDIAN_IMPORT_CSV lock to {is_locked('PRODUCT_TAX_AND_MOARDIAN_IMPORT_CSV')}")
     else:
+        logger.warning(f"Failed changing PRODUCT_TAX_AND_MOARDIAN_IMPORT_CSV lock. task already in progress.")
         raise ResourceWarning("Operation PRODUCT_TAX_AND_MOARDIAN_IMPORT_CSV is already in progress.")
 
 @router.post("/devops-tools/v1/products/tax_and_moadian/import_csv", status_code=status.HTTP_201_CREATED)
