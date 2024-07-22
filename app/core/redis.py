@@ -48,7 +48,7 @@ def set_cache(key: str, service: str, value: str, expire: int = 60):
 
 
 def lock(key: str, time: int) -> bool:
-    full_key = settings.PROJECT_NAME + ":" + ":lock:" + key
+    full_key = settings.PROJECT_NAME + ":locks:" + key
     redis = get_redis()
     try:
         acquired = redis.set(full_key, "locked", ex=time, nx=True)
@@ -61,7 +61,7 @@ def lock(key: str, time: int) -> bool:
     
 
 def unlock(key: str) -> None:
-    full_key = settings.PROJECT_NAME + ":" + ":lock:" + key
+    full_key = settings.PROJECT_NAME + ":locks:" + key
     redis = get_redis()
     try:
         redis.delete(full_key)
@@ -69,7 +69,7 @@ def unlock(key: str) -> None:
         logger.warning(f"Can not unlock redis-lock: {e}")
         
 def is_locked(key: str) -> bool:
-    full_key = settings.PROJECT_NAME + ":" + ":lock:" + key
+    full_key = settings.PROJECT_NAME + ":locks:" + key
     redis = get_redis()
     try:
         if redis.exists(full_key):

@@ -1,196 +1,180 @@
-const toastLiveExample = document.getElementById('toast');
+const toastLiveExample = document.getElementById("toast");
 
 var token = "";
 var hostname = "";
 
 function prepend_url(url) {
-    const notlocal = hostname.includes('bo.snapp.supply');
-    if (notlocal) {
-        return "/api-bo" + url
-    } else {
-        return url
-    }
+  const notlocal = hostname.includes("bo.snapp.supply");
+  if (notlocal) {
+    return "/api-bo" + url;
+  } else {
+    return url;
+  }
 }
 
-function notEmpty( el ){
-    return $.trim(el.html())
+function notEmpty(el) {
+  return $.trim(el.html());
 }
 
 function createToast(message, severity, status = 500, delay = 5000) {
-    const toastTemplate = document.getElementById('toastTemplate');
-    const toastClone = toastTemplate.cloneNode(true);
-    toastClone.id = '';
+  const toastTemplate = document.getElementById("toastTemplate");
+  const toastClone = toastTemplate.cloneNode(true);
+  toastClone.id = "";
 
-    if (severity != 'success') {
-    toastClone.querySelector('.alert-message').textContent = "Error " + status + ": " + message;
-    } else {
-    toastClone.querySelector('.alert-message').textContent = message;
+  if (severity != "success") {
+    toastClone.querySelector(".alert-message").textContent =
+      "Error " + status + ": " + message;
+  } else {
+    toastClone.querySelector(".alert-message").textContent = message;
+  }
 
-    }
+  if (severity == "warning") {
+    toastClone.querySelector(".alert").classList.add("alert-warning");
+    toastClone
+      .querySelector(".svg-icon")
+      .classList.add("bi-exclamation-triangle-fill");
+  } else if (severity == "error") {
+    delay = 30000;
+    toastClone.querySelector(".alert").classList.add("alert-danger");
+    toastClone
+      .querySelector(".svg-icon")
+      .classList.add("bi-exclamation-triangle-fill");
+  } else if (severity == "success") {
+    toastClone.querySelector(".alert").classList.add("alert-success");
+    toastClone.querySelector(".svg-icon").classList.add("bi-check-circle-fill");
+  } else {
+    return -1;
+  }
 
-    if (severity == 'warning') {
-        toastClone.querySelector('.alert').classList.add("alert-warning");
-        toastClone.querySelector('.svg-icon').classList.add('bi-exclamation-triangle-fill');
-    } else if (severity == 'error') {
-        toastClone.querySelector('.alert').classList.add("alert-danger");
-        toastClone.querySelector('.svg-icon').classList.add('bi-exclamation-triangle-fill');
-    } else if (severity == 'success') {
-        toastClone.querySelector('.alert').classList.add("alert-success");
-        toastClone.querySelector('.svg-icon').classList.add('bi-check-circle-fill');
-    } else {
-        return -1;
-    }
+  const toastContainer = document.getElementById("toastContainer");
+  toastContainer.appendChild(toastClone);
 
-    const toastContainer = document.getElementById('toastContainer');
-    toastContainer.appendChild(toastClone);
+  const bsToast = new bootstrap.Toast(toastClone, { delay });
+  bsToast.show();
 
-    const bsToast = new bootstrap.Toast(toastClone, { delay });
-    bsToast.show();
-
-    toastClone.addEventListener('hidden.bs.toast', () => {
-      toastClone.remove();
-    });
+  toastClone.addEventListener("hidden.bs.toast", () => {
+    toastClone.remove();
+  });
 }
 
 function createOrUpdateToastTask(status, jobName) {
-    if (!document.getElementById('toast-' + jobName)) {
-        const toastTemplate = document.getElementById('toastTemplate');
-        const existingToast = toastTemplate.cloneNode(true);
-        existingToast.id = 'toast-' + jobName;  
-        const toastContainer = document.getElementById('toastContainer');
-        toastContainer.appendChild(existingToast);
-    }
-    let existingToast = document.getElementById('toast-' + jobName);
-    if (status == 'active') {
-        existingToast.querySelector('.alert').classList.add("alert-light");
-        existingToast.querySelector('.svg-icon').classList.add('bi-hourglass-split');
-        existingToast.querySelector('.alert-message').textContent = 'Job ' + jobName + ' Status: Active';
-        const bsToast = new bootstrap.Toast(existingToast, { autohide: false });
-        bsToast.show();
-    } else if (status == 'pending') {
-        existingToast.querySelector('.alert').classList.add("alert-warning");
-        existingToast.querySelector('.alert').classList.remove('alert-light');
-        existingToast.querySelector('.alert-message').textContent = 'Job ' + jobName + ' Status: Pending';
-    } else if (status == 'succeeded') {
-        existingToast.querySelector('.alert').classList.add("alert-success");
-        existingToast.querySelector('.alert').classList.remove("alert-warning");
-        existingToast.querySelector('.alert').classList.remove('alert-light');
-        existingToast.querySelector('.svg-icon').classList.add('bi-check2-circle');
-        existingToast.querySelector('.alert-message').textContent = 'Job ' + jobName + ' Status: Succeeded';
-        existingToast.querySelector('.svg-icon').classList.remove('bi-hourglass-split');
-    } else if (status == 'failed') {
-        existingToast.querySelector('.alert').classList.add("alert-danger");
-        existingToast.querySelector('.alert').classList.remove('alert-warning');
-        existingToast.querySelector('.alert').classList.remove('alert-light');
-        existingToast.querySelector('.svg-icon').classList.add('bi-exclamation-triangle-fill');
-        existingToast.querySelector('.alert-message').textContent = 'Job ' + jobName + ' Status: Failed';
-        existingToast.querySelector('.svg-icon').classList.remove('bi-hourglass-split');
-    }
-    
-    existingToast.addEventListener('hidden.bs.toast', () => {
-        existingToast.remove();
-    });
+  if (!document.getElementById("toast-" + jobName)) {
+    const toastTemplate = document.getElementById("toastTemplate");
+    const existingToast = toastTemplate.cloneNode(true);
+    existingToast.id = "toast-" + jobName;
+    const toastContainer = document.getElementById("toastContainer");
+    toastContainer.appendChild(existingToast);
+  }
+  let existingToast = document.getElementById("toast-" + jobName);
+  if (status == "active") {
+    existingToast.querySelector(".alert").classList.add("alert-light");
+    existingToast
+      .querySelector(".svg-icon")
+      .classList.add("bi-hourglass-split");
+    existingToast.querySelector(".alert-message").textContent =
+      "Job " + jobName + " Status: Active";
+    const bsToast = new bootstrap.Toast(existingToast, { autohide: false });
+    bsToast.show();
+  } else if (status == "pending") {
+    existingToast.querySelector(".alert").classList.add("alert-warning");
+    existingToast.querySelector(".alert").classList.remove("alert-light");
+    existingToast.querySelector(".alert-message").textContent =
+      "Job " + jobName + " Status: Pending";
+  } else if (status == "succeeded") {
+    existingToast.querySelector(".alert").classList.add("alert-success");
+    existingToast.querySelector(".alert").classList.remove("alert-warning");
+    existingToast.querySelector(".alert").classList.remove("alert-light");
+    existingToast.querySelector(".svg-icon").classList.add("bi-check2-circle");
+    existingToast.querySelector(".alert-message").textContent =
+      "Job " + jobName + " Status: Succeeded";
+    existingToast
+      .querySelector(".svg-icon")
+      .classList.remove("bi-hourglass-split");
+  } else if (status == "failed") {
+    existingToast.querySelector(".alert").classList.add("alert-danger");
+    existingToast.querySelector(".alert").classList.remove("alert-warning");
+    existingToast.querySelector(".alert").classList.remove("alert-light");
+    existingToast
+      .querySelector(".svg-icon")
+      .classList.add("bi-exclamation-triangle-fill");
+    existingToast.querySelector(".alert-message").textContent =
+      "Job " + jobName + " Status: Failed";
+    existingToast
+      .querySelector(".svg-icon")
+      .classList.remove("bi-hourglass-split");
+  }
+
+  existingToast.addEventListener("hidden.bs.toast", () => {
+    existingToast.remove();
+  });
 }
 
 function inProgress() {
-    if (notEmpty($('#wrapper'))) {
-        var wrapper = $("#wrapper");
-        wrapper.prop('style', "cursor: not-allowed;");
-    }
-    if (notEmpty($('#upload-button'))) {
-        var buttonUpdate = $("#upload-button");
-        buttonUpdate.prop('disabled', true);
-    }
-    if (notEmpty($('#reset-button'))) {
-        var buttonReset = $("#reset-button");
-        buttonReset.prop('disabled', true);
-    } 
+  if (notEmpty($("#wrapper"))) {
+    var wrapper = $("#wrapper");
+    wrapper.prop("style", "cursor: not-allowed;");
+  }
+  if (notEmpty($("#upload-button"))) {
+    var buttonUpdate = $("#upload-button");
+    buttonUpdate.prop("disabled", true);
+  }
+  if (notEmpty($("#reset-button"))) {
+    var buttonReset = $("#reset-button");
+    buttonReset.prop("disabled", true);
+  }
 }
 
 function finishedProgress() {
-    if (notEmpty($('#wrapper'))) {
-        var wrapper = $("#wrapper");
-        wrapper.prop('style', "");
-    }
-    if (notEmpty($('#upload-button'))) {
-        var buttonUpdate = $("#upload-button");
-        buttonUpdate.prop('disabled', false);
-    }
-    if (notEmpty($('#reset-button'))) {
-        var buttonReset = $("#reset-button");
-        buttonReset.prop('disabled', false);
-    } 
-}
-
-function uploadProductTaxAndMoadian() {
-    inProgress();
-    var file = csvFile.files[0];
-    if (!file) {
-        createToast('No csv file selected!', "warning", 422);
-        finishedProgress();
-        return -1
-    }
-    var formData = new FormData();
-    formData.append('file', file);
-    url = prepend_url('/devops-tools/v1/products/tax_and_moadian/import_csv')
-    $.ajax(url, {
-    type: 'POST',
-    data: formData,
-    contentType: false,
-    processData: false,
-    headers: {
-        "Authorization": token,
-    },
-    statusCode: {
-        200: function (res) {
-            createToast('Product CSV file imported.', "success");
-            finishedProgress();
-            $table.bootstrapTable('refresh'); 
-        }
-    },
-    error: function (jqXHR, status, error) {
-        handleErrors(jqXHR.status, jqXHR.responseJSON);
-        finishedProgress();
-    }
-    });
+  if (notEmpty($("#wrapper"))) {
+    var wrapper = $("#wrapper");
+    wrapper.prop("style", "");
+  }
+  if (notEmpty($("#upload-button"))) {
+    var buttonUpdate = $("#upload-button");
+    buttonUpdate.prop("disabled", false);
+  }
+  if (notEmpty($("#reset-button"))) {
+    var buttonReset = $("#reset-button");
+    buttonReset.prop("disabled", false);
+  }
 }
 
 function updateSettings() {
-    inProgress();
-    var orderLock = $("#order-lock-in-days").val();
-    if (orderLock == lastOrderLock) {
-        finishedProgress();
-        return -1
-    }
-    if (!orderLock || orderLock < 0 || orderLock > 1000) {
-        createToast('Need to fill inputs!', "warning", 422);
-        finishedProgress();
-        return -1
-    }
-    url = prepend_url('/devops-tools/v1/order/lock/edit')
-    $.ajax(url, {
-    type: 'PUT',
-    data: JSON.stringify({ "lock": orderLock }),
+  inProgress();
+  var orderLock = $("#order-lock-in-days").val();
+  if (orderLock == lastOrderLock) {
+    finishedProgress();
+    return -1;
+  }
+  if (!orderLock || orderLock < 0 || orderLock > 1000) {
+    createToast("Need to fill inputs!", "warning", 422);
+    finishedProgress();
+    return -1;
+  }
+  url = prepend_url("/devops-tools/v1/order/lock/edit");
+  $.ajax(url, {
+    type: "PUT",
+    data: JSON.stringify({ lock: orderLock }),
     headers: {
-        "Content-Type": "application/json",
-        "Authorization": token,
+      "Content-Type": "application/json",
+      Authorization: token,
     },
     statusCode: {
-        200: function (res) {
-            createToast('Order lock Updated.', "success");
-            finishedProgress();
-            lastOrderLock = orderLock;
-        }
+      200: function (res) {
+        createToast("Order lock Updated.", "success");
+        finishedProgress();
+        lastOrderLock = orderLock;
+      },
     },
     error: function (jqXHR, status, error) {
-        handleErrors(jqXHR.status, jqXHR.responseJSON);
-        finishedProgress();
-    }
-    });
+      handleErrors(jqXHR.status, jqXHR.responseJSON);
+      finishedProgress();
+    },
+  });
 }
 
 function resetSettings() {
-    $("#order-lock-in-days").val(lastOrderLock);
+  $("#order-lock-in-days").val(lastOrderLock);
 }
 
 function responseHandler(res) {
@@ -200,142 +184,236 @@ function responseHandler(res) {
   return res;
 }
 
-function exportProductTaxAndMoadian(){
-    const url = prepend_url('/devops-tools/v1/products/tax_and_moadian/export_csv')
-    var xhr = $.ajax({
-        url: url,
-        type: "GET",
-        headers: { Authorization: token },
-        responseType: 'blob',
-        success: function (data, status, xhr) {
-            let filename = '';
-            const disposition = xhr.getResponseHeader('Content-Disposition');
-            if (disposition && disposition.indexOf('attachment') !== -1) {
-                const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
-                const matches = filenameRegex.exec(disposition);
-                if (matches != null && matches[1]) {
-                    filename = matches[1].replace(/['"]/g, '');
-                }
-            }
-    
-            if (!filename) {
-                filename = 'products.csv';
-            }
-            const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
-            const blob = new Blob([bom, data], { type: 'text/csv;charset=utf-8' }); 
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            
-            a.href = url;
-            a.download = filename;
-    
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        },
-        error: function (jqXHR, status, error) {
-            handleErrors(jqXHR.status, jqXHR.responseJSON);
+function exportProductTaxAndMoadian() {
+  const url = prepend_url(
+    "/devops-tools/v1/products/tax_and_moadian/export_csv"
+  );
+  var xhr = $.ajax({
+    url: url,
+    type: "GET",
+    headers: { Authorization: token },
+    responseType: "blob",
+    success: function (data, status, xhr) {
+      let filename = "";
+      const disposition = xhr.getResponseHeader("Content-Disposition");
+      if (disposition && disposition.indexOf("attachment") !== -1) {
+        const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+        const matches = filenameRegex.exec(disposition);
+        if (matches != null && matches[1]) {
+          filename = matches[1].replace(/['"]/g, "");
         }
-    });
+      }
+
+      if (!filename) {
+        filename = "products.csv";
+      }
+      const bom = new Uint8Array([0xef, 0xbb, 0xbf]);
+      const blob = new Blob([bom, data], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+
+      a.href = url;
+      a.download = filename;
+
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    },
+    error: function (jqXHR, status, error) {
+      handleErrors(jqXHR.status, jqXHR.responseJSON);
+    },
+  });
 }
 
 function ajaxRequestProductTaxMoadian(params) {
-    const url = prepend_url('/devops-tools/v1/products/tax_and_moadian/list')
-    $.ajax({
-        url: url + '?' + $.param(params.data),
-        type: "GET",
-        headers: { Authorization: token },
-        statusCode: {
-            200: function (res) {
-                params.success(res);
-            }
-        },
-        error: function (jqXHR, status, error) {
-            handleErrors(jqXHR.status, jqXHR.responseJSON);
-        }
-    });
+  const url = prepend_url("/devops-tools/v1/products/tax_and_moadian/list");
+  $.ajax({
+    url: url + "?" + $.param(params.data),
+    type: "GET",
+    headers: { Authorization: token },
+    statusCode: {
+      200: function (res) {
+        params.success(res);
+      },
+    },
+    error: function (jqXHR, status, error) {
+      handleErrors(jqXHR.status, jqXHR.responseJSON);
+    },
+  });
 }
 
 function ajaxRequestGetOrderLock() {
-    const url = prepend_url('/devops-tools/v1/order/lock')
-    $.ajax({
-        url: url,
-        type: "GET",
-        headers: { Authorization: token },
-        statusCode: {
-            200: function (res) {
-                $('#order-lock-in-days').val(res.lock);
-                lastOrderLock = res.lock;
-            }
-        },
-        error: function (jqXHR, status, error) {
-            handleErrors(jqXHR.status, jqXHR.responseJSON);
-        }
-    });
+  const url = prepend_url("/devops-tools/v1/order/lock");
+  $.ajax({
+    url: url,
+    type: "GET",
+    headers: { Authorization: token },
+    statusCode: {
+      200: function (res) {
+        $("#order-lock-in-days").val(res.lock);
+        lastOrderLock = res.lock;
+      },
+    },
+    error: function (jqXHR, status, error) {
+      handleErrors(jqXHR.status, jqXHR.responseJSON);
+    },
+  });
 }
 
-function handleErrors(status, message) {        
-    createToast(message.detail, "error", status);
-    console.error("Error :" + message.detail);
+function handleErrors(status, message) {
+  createToast(message.detail, "error", status);
+  console.error("Error :" + message.detail);
 }
 
 // Aggregation sync functions
 
 function syncAggregationCreate(type) {
-    const url = prepend_url('/devops-tools/v1/kubernetes/jobs/aggregation/create')
-    fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': token
-      },
-      body: JSON.stringify({ type: type })
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.Status === 'Created') {
-        createOrUpdateToastTask('active', data.Job);
-        checkJobStatus(data.Job);
+  const url = prepend_url(
+    "/devops-tools/v1/kubernetes/jobs/aggregation/create"
+  );
+  fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: token,
+    },
+    body: JSON.stringify({ type: type }),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.Status === "Created") {
+        createOrUpdateToastTask("active", data.Job);
+        checkJobStatusAggregation(data.Job);
       } else {
-        console.error('Job creation failed:', data);
+        console.error("Job creation failed:", data);
       }
     })
-    .catch(error => {
-      console.error('Error:', error);
-    });
-  }
-
-  function checkJobStatusAggregation(jobName) {
-    const statusUrl = prepend_url('/devops-tools/v1/kubernetes/jobs/aggregation/status/');
-    fetch(statusUrl + `?job_name=${jobName}`, {
-        headers: {
-            'Authorization': token
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data) {
-            if (data.Pending) {
-                createOrUpdateToastTask('pending', jobName);
-            } else if (data.Succeeded) {
-                createOrUpdateToastTask('succeeded', jobName);
-            } else if (data.Failed) {
-                createOrUpdateToastTask('failed', jobName);
-            } else {
-                createOrUpdateToastTask('active', jobName);
-            }
-            if (data.Succeeded || data.Failed) {
-                console.log(`Job ${jobName} has status: ${data.Status}. Stopping further requests.`);
-                return;
-            }
-        } else {
-            console.error('Data is null or undefined');
-        }
-        setTimeout(() => checkJobStatus(jobName), 5000);
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        setTimeout(() => checkJobStatus(jobName), 5000);
+    .catch((error) => {
+      console.error("Error:", error);
     });
 }
+
+function checkJobStatusAggregation(jobName) {
+  const statusUrl = prepend_url(
+    "/devops-tools/v1/kubernetes/jobs/aggregation/status/"
+  );
+  fetch(statusUrl + `?job_name=${jobName}`, {
+    headers: {
+      Authorization: token,
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data) {
+        if (data.Pending) {
+          createOrUpdateToastTask("pending", jobName);
+        } else if (data.Succeeded) {
+          createOrUpdateToastTask("succeeded", jobName);
+        } else if (data.Failed) {
+          createOrUpdateToastTask("failed", jobName);
+        } else {
+          createOrUpdateToastTask("active", jobName);
+        }
+        if (data.Succeeded || data.Failed) {
+          console.log(
+            `Job ${jobName} has status: ${data.Status}. Stopping further requests.`
+          );
+          return;
+        }
+      } else {
+        console.error("Data is null or undefined");
+      }
+      setTimeout(() => checkJobStatusAggregation(jobName), 5000);
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+      setTimeout(() => checkJobStatusAggregation(jobName), 5000);
+    });
+}
+
+function getCurrentDateTime() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const formattedDateTime = `${year}${month}${day}${hours}${minutes}`;
+
+    return formattedDateTime;
+}
+
+function uploadProductTaxAndMoadian() {
+  inProgress();
+  var file = csvFile.files[0];
+  var taskID = getCurrentDateTime();
+  if (!file) {
+    createToast("No csv file selected!", "warning", 422);
+    finishedProgress();
+    return -1;
+  }
+  var formData = new FormData();
+  formData.append("file", file);
+  url = prepend_url("/devops-tools/v1/products/tax_and_moadian/import_csv/" + taskID);
+  $.ajax(url, {
+    type: "POST",
+    data: formData,
+    contentType: false,
+    processData: false,
+    headers: {
+      Authorization: token,
+    },
+    statusCode: {
+      200: function (res) {
+        createToast("Product CSV file uploaded. importing in process.", "success");
+        finishedProgress();
+        createOrUpdateToastTask("active", taskID);
+        checkJobStatusImportCSVTaxAndMoadian(taskID);
+      },
+    },
+    error: function (jqXHR, status, error) {
+      handleErrors(jqXHR.status, jqXHR.responseJSON);
+      finishedProgress();
+    },
+  });
+}
+
+function checkJobStatusImportCSVTaxAndMoadian(jobName) {
+    url = prepend_url("/devops-tools/v1/products/tax_and_moadian/import_csv/status/" + jobName);
+    fetch(url, {
+      headers: {
+        Authorization: token,
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data) {
+          if (data.status == 'pending') {
+            createOrUpdateToastTask("pending", jobName);
+          } else if (data.status == 'succeeded') {
+            $table.bootstrapTable("refresh");
+            createOrUpdateToastTask("succeeded", jobName);
+          } else if (data.status == 'failed') {
+            createOrUpdateToastTask("failed", jobName);
+            createToast(data.error, "error");
+          } else {
+            createOrUpdateToastTask("active", jobName);
+          }
+          if (data.status == 'succeeded' || data.status == 'failed') {
+            console.log(
+              `Job ${jobName} has status: ${data.Status}. Stopping further requests.`
+            );
+            return;
+          }
+        } else {
+          console.error("Data is null or undefined");
+        }
+        setTimeout(() => checkJobStatusImportCSVTaxAndMoadian(jobName), 5000);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        setTimeout(() => checkJobStatusImportCSVTaxAndMoadian(jobName), 5000);
+      });
+  }
+  
