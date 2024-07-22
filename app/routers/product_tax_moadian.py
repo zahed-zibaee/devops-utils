@@ -166,9 +166,10 @@ def import_csv_product_tax_and_moadian(
             try:
                 product = db_read.query(Product).filter(Product.id == row["id"]).first()
                 if not product:
-                    raise HTTPException(status_code=404, detail="Product not found - id={_id}".format(_id=row["id"]))
+                    logger.error()
+                    raise RuntimeError("Product not found - id={_id}".format(_id=row["id"]))
             except:
-                    raise HTTPException(status_code=404, detail="Can not get product {_id} from database".format(_id=row["id"]))
+                    raise RuntimeError("Can not get product {_id} from database".format(_id=row["id"]))
             product.tax_rate = row["tax_rate"] 
             product.moadian_product_id = row["moadian_product_id"]
             updated_products.append(product)

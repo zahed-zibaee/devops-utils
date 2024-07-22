@@ -128,11 +128,11 @@
   });
 
   syncTablesButton.addEventListener("click", () => {
-    sync("tables");
+    syncAggregationCreate("tables");
   });
 
   syncSchemaButton.addEventListener("click", () => {
-    sync("views");
+    syncAggregationCreate("views");
   });
 </script>
 {% endblock %}

@@ -282,7 +282,7 @@ function handleErrors(status, message) {
 
 // Aggregation sync functions
 
-function sync(type) {
+function syncAggregationCreate(type) {
     const url = prepend_url('/devops-tools/v1/kubernetes/jobs/aggregation/create')
     fetch(url, {
       method: 'POST',
@@ -306,7 +306,7 @@ function sync(type) {
     });
   }
 
-  function checkJobStatus(jobName) {
+  function checkJobStatusAggregation(jobName) {
     const statusUrl = prepend_url('/devops-tools/v1/kubernetes/jobs/aggregation/status/');
     fetch(statusUrl + `?job_name=${jobName}`, {
         headers: {
