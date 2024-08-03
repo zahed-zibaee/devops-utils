@@ -32,8 +32,8 @@ async def create_aggregation_schema_job(job: Job):
         logger.error("Could not identify job name.")
         raise HTTPException(status_code=404, detail='Job type no found!')
 
-    if not await is_locked(job_name):
-        await lock(job_name, 60)
+    if not is_locked(job_name):
+        lock(job_name, 60)
 
         SECRET_ENV = k8s_client.V1EnvFromSource(
             secret_ref = k8s_client.V1SecretEnvSource(
@@ -103,9 +103,9 @@ async def aggregation_job_status(job_name: str):
     if ('Succeeded' in status or 'Failed' in status):
         for suffix in ["view", "tables"]:
             lock_name = f"{settings.JOB_AG_SYNC_NAME}-{suffix}"
-            if await is_locked(lock_name):
+            if is_locked(lock_name):
                 logger.info(f'Unlocking job: {lock_name}')
-                await unlock(lock_name)
+                unlock(lock_name)
                 return
         
     return JSONResponse(status)
