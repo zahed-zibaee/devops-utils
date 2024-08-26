@@ -3,41 +3,30 @@ from fastapi.responses import JSONResponse
 from kubernetes import client as k8s_client
 
 from app.core.kubernetes import create_job, job_status, job_time
+from app.core.redis import is_locked, lock, unlock
 from app.core.logging import logger
 from app.core.config import settings
-from app.core.redis import is_locked, lock, unlock
-from app.schemas.main import Job
 
 
 router = APIRouter()
 
 
-@router.post("/devops-tools/v1/kubernetes/jobs/aggregation/create")
-async def create_aggregation_schema_job(job: Job):
-    if job.type == "views":
-        job_name = settings.JOB_AG_SYNC_NAME+"-view"
-        COMMAND = "/backup/backup-views.sh"
-        IMAGE = settings.JOB_AG_SYNC_IMAGE_VIEWS
-    elif job.type == "tables":
-        job_name = settings.JOB_AG_SYNC_NAME+"-tables"
-        COMMAND = "/backup/backup-tables.sh"
-        IMAGE = settings.JOB_AG_SYNC_IMAGE_TABLES
-    else:
-        logger.error("Could not identify job name.")
-        raise HTTPException(status_code=404, detail='Job type no found!')
-
+@router.post("/devops-tools/v1/kubernetes/jobs/access/create")
+async def create_access_job():
+    job_name = settings.JOB_ACCESS_NAME
     if not is_locked(job_name):
         lock(job_name, 60)
-
+        COMMAND = "/backup/access-sync.sh"
+        IMAGE = settings.JOB_ACCESS_IMAGE
         SECRET_ENV = k8s_client.V1EnvFromSource(
             secret_ref = k8s_client.V1SecretEnvSource(
-            name=settings.JOB_AG_SECRET
+            name=settings.JOB_ACCESS_SECRET
             )
         )
 
         CONFIG_MAP_ENV = k8s_client.V1EnvFromSource(
             config_map_ref = k8s_client.V1ConfigMapEnvSource(
-            name=settings.JOB_AG_CONFIG_MAP
+            name=settings.JOB_ACCESS_CONFIG_MAP
             )
         )
 
@@ -48,13 +37,13 @@ async def create_aggregation_schema_job(job: Job):
             )
         )
         container = k8s_client.V1Container(
-            name=settings.JOB_AG_SYNC_NAME,
+            name=settings.JOB_ACCESS_NAME,
             image=IMAGE,
             image_pull_policy="IfNotPresent",
             command=["/bin/sh", "-c", COMMAND],
             env_from=[SECRET_ENV, CONFIG_MAP_ENV],
             volume_mounts=[k8s_client.V1VolumeMount(
-                 mount_path="/backup/dump",
+                mount_path="/backup/dump",
                 name="backupdir"
             )],
             resources=k8s_client.V1ResourceRequirements(
@@ -64,10 +53,10 @@ async def create_aggregation_schema_job(job: Job):
         )
         template = k8s_client.V1PodTemplateSpec(
             metadata=k8s_client.V1ObjectMeta(labels={
-                "snapp.supply/app-name": "aggregation-sync",
-                "snapp.supply/app-instance": "aggregation-backup-schema",
+                "snapp.supply/app-name": "access-sync",
+                "snapp.supply/app-instance": "access-sync-tables",
                 "snapp.supply/app-type": "backup",
-                "snapp.supply/app-environment" : settings.JOB_AG_SYNC_SOURCE_NAMESPACE
+                "snapp.supply/app-environment" : settings.JOB_ACCESS_NAMESPACE
                 }),
             spec=k8s_client.V1PodSpec(restart_policy="Never",
                                   containers=[container],
@@ -76,7 +65,7 @@ async def create_aggregation_schema_job(job: Job):
 
         job_name = job_name+"-"+job_time()
         try:
-            create_job(job_name, settings.JOB_AG_SYNC_SOURCE_NAMESPACE, template)
+            create_job(job_name, settings.JOB_ACCESS_NAMESPACE, template)
         except Exception as e:
             logger.error(f"Error occured during creating job: {str(e)}")
             raise HTTPException(status_code=503, detail='Job creation failed.')
@@ -86,20 +75,19 @@ async def create_aggregation_schema_job(job: Job):
     else:
         raise HTTPException(status_code=409, detail="Operation is already in progress")
 
-@router.get("/devops-tools/v1/kubernetes/jobs/aggregation/status/")
-async def aggregation_job_status(job_name: str):
-    status = job_status(job_name, settings.JOB_AG_SYNC_SOURCE_NAMESPACE)
+@router.get("/devops-tools/v1/kubernetes/jobs/access/status/")
+async def access_job_status(job_name: str):
+    status = job_status(job_name, settings.JOB_ACCESS_NAMESPACE)
     if status not in range(200, 299) and type(status) == int:
         raise HTTPException(status_code=503, detail=f'Failed to get the job status. {str(status)}')
     if 'Last Transition Time' in status:
         last_transition_time_str = status['Last Transition Time'].isoformat()
         status['Last Transition Time'] = last_transition_time_str
     if ('Succeeded' in status or 'Failed' in status):
-        for suffix in ["view", "tables"]:
-            lock_name = f"{settings.JOB_AG_SYNC_NAME}-{suffix}"
-            if is_locked(lock_name):
-                logger.info(f'Unlocking job: {lock_name}')
-                unlock(lock_name)
-                return
+        lock_name = f"{settings.JOB_ACCESS_NAME}"
+        if is_locked(lock_name):
+            logger.info(f'Unlocking job: {lock_name}')
+            unlock(lock_name)
+            return
         
     return JSONResponse(status)

@@ -266,7 +266,7 @@ function handleErrors(status, message) {
   console.error("Error :" + message.detail);
 }
 
-// Aggregation sync functions
+// sync functions
 
 function syncAggregationCreate(type) {
   const url = prepend_url(
@@ -284,7 +284,7 @@ function syncAggregationCreate(type) {
     .then((data) => {
       if (data.Status === "Created") {
         createOrUpdateToastTask("active", data.Job);
-        checkJobStatusAggregation(data.Job);
+        checkJobStatus("/devops-tools/v1/kubernetes/jobs/aggregation/create", data.Job)
       } else {
         console.error("Job creation failed:", data);
       }
@@ -294,9 +294,34 @@ function syncAggregationCreate(type) {
     });
 }
 
-function checkJobStatusAggregation(jobName) {
+function syncAccess() {
+  const url = prepend_url(
+    "/devops-tools/v1/kubernetes/jobs/access/create"
+  );
+  fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: token,
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.Status === "Created") {
+        createOrUpdateToastTask("active", data.Job);
+        checkJobStatus("/devops-tools/v1/kubernetes/jobs/access/status/", data.Job);
+      } else {
+        console.error("Job creation failed:", data);
+      }
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+    });
+}
+
+function checkJobStatus(endpoint, jobName) {
   const statusUrl = prepend_url(
-    "/devops-tools/v1/kubernetes/jobs/aggregation/status/"
+    endpoint
   );
   fetch(statusUrl + `?job_name=${jobName}`, {
     headers: {
@@ -324,11 +349,11 @@ function checkJobStatusAggregation(jobName) {
       } else {
         console.error("Data is null or undefined");
       }
-      setTimeout(() => checkJobStatusAggregation(jobName), 5000);
+      setTimeout(() => checkJobStatus(endpoint, jobName), 5000);
     })
     .catch((error) => {
       console.error("Error:", error);
-      setTimeout(() => checkJobStatusAggregation(jobName), 5000);
+      setTimeout(() => checkJobStatus(endpoint, jobName), 5000);
     });
 }
 

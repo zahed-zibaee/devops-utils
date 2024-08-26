@@ -33,6 +33,20 @@
         Aggregation
       </button>
     </li>
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link"
+        id="access-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#access"
+        type="button"
+        role="tab"
+        aria-controls="access"
+        aria-selected="false"
+      >
+        Access
+      </button>
+    </li>
   </ul>
   <div class="tab-content mb-3 mt-4" id="myTabContent">
     <div
@@ -91,6 +105,22 @@
         </button>
       </div>
     </div>
+    <div
+      class="tab-pane fade"
+      id="access"
+      role="tabpanel"
+      aria-labelledby="access-tab"
+    >
+      <div class="d-flex justify-content-end my-3">
+        <button
+          id="access-sync-button"
+          type="button"
+          class="btn btn-primary mx-1"
+        >
+          Sync Tables
+        </button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -104,6 +134,7 @@
   const resetButton = document.getElementById("reset-button");
   const syncTablesButton = document.getElementById("sync-tables-button");
   const syncSchemaButton = document.getElementById("sync-views-button");
+  const syncAccessButton = document.getElementById("access-sync-button");
   var lastOrderLock = -1;
   var hostname = "";
   var token = "";
@@ -134,5 +165,9 @@
   syncSchemaButton.addEventListener("click", () => {
     syncAggregationCreate("views");
   });
+
+  syncAccessButton.addEventListener("click", () => {
+    syncAccess()
+  })
 </script>
 {% endblock %}

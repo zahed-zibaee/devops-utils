@@ -1,5 +1,6 @@
 from kubernetes import client as k8s_client
 from kubernetes.client.rest import ApiException
+from datetime import datetime
 
 from app.core.logging import logger
 from app.core.config import settings
@@ -37,8 +38,6 @@ def create_job(job_name, job_namespace, job_template) -> int:
     logger.info("Job created. Status='%s'" % str(api_response.status))
     return api_response.status
 
-
-
 def job_status(job_name, namespace):
     try:
         job = v1.read_namespaced_job_status(name=job_name, namespace=namespace)
@@ -64,3 +63,5 @@ def job_status(job_name, namespace):
         logger.error(f"Exception when reading job status: {e}")
         return e.status
 
+def job_time():
+    return datetime.now().strftime("%Y%m%d%H%M%S")

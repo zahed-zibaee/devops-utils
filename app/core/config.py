@@ -20,7 +20,19 @@ class Settings(BaseSettings):
     DB_MYSQL_READ_DATABASE: str = 'mydatabase'
     DB_MYSQL_READ_USERNAME: str = 'root'
     DB_MYSQL_READ_PORT: str = '3306'
-    DB_MYSQL_READ_PASSWORD: str = ''    
+    DB_MYSQL_READ_PASSWORD: str = ''   
+    # PostgreSQL write config
+    DB_POSTGRES_WRITE_HOST: str = '127.0.0.1'
+    DB_POSTGRES_WRITE_DATABASE: str = 'mydatabase'
+    DB_POSTGRES_WRITE_USERNAME: str = 'postgres'
+    DB_POSTGRES_WRITE_PORT: str = '5432'
+    DB_POSTGRES_WRITE_PASSWORD: str = ''
+    # PostgreSQL write config
+    DB_POSTGRES_READ_HOST: str = '127.0.0.1'
+    DB_POSTGRES_READ_DATABASE: str = 'mydatabase'
+    DB_POSTGRES_READ_USERNAME: str = 'postgres'
+    DB_POSTGRES_READ_PORT: str = '5432'
+    DB_POSTGRES_READ_PASSWORD: str = ''
     # Toggle Feature
     DISABLED_FEATURES: list = []  
     # Argocd
@@ -50,6 +62,12 @@ class Settings(BaseSettings):
     DB_PG_AG_HOST: str = ''
     DB_PG_AG_STAGING_HOST: str = ''
     DB_PG_AG_SECRET_NAME: str = ''
+    # Job access sync
+    JOB_ACCESS_NAME: str = 'access-sync'
+    JOB_ACCESS_IMAGE: str = 'reg.snapp.supply/access-sync:v1.0.3'
+    JOB_ACCESS_SECRET: str = 'access-sync'
+    JOB_ACCESS_CONFIG_MAP: str = 'access-sync'
+    JOB_ACCESS_NAMESPACE: str = 'snappsupply-staging'
     # Job Aggregation sync 
     JOB_AG_SECRET: str = 'aggregation-sync'
     JOB_AG_CONFIG_MAP: str = 'aggregation-sync'
