@@ -75,7 +75,7 @@ async def create_access_job():
     else:
         raise HTTPException(status_code=409, detail="Operation is already in progress")
 
-@router.get("/devops-tools/v1/kubernetes/jobs/access/status/")
+@router.get("/devops-tools/v1/kubernetes/jobs/access/status")
 async def access_job_status(job_name: str):
     status = job_status(job_name, settings.JOB_ACCESS_NAMESPACE)
     if status not in range(200, 299) and type(status) == int:

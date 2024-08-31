@@ -284,7 +284,7 @@ function syncAggregationCreate(type) {
     .then((data) => {
       if (data.Status === "Created") {
         createOrUpdateToastTask("active", data.Job);
-        checkJobStatus("/devops-tools/v1/kubernetes/jobs/aggregation/create", data.Job)
+        checkJobStatus("/devops-tools/v1/kubernetes/jobs/aggregation/status", data.Job)
       } else {
         console.error("Job creation failed:", data);
       }
@@ -309,7 +309,7 @@ function syncAccess() {
     .then((data) => {
       if (data.Status === "Created") {
         createOrUpdateToastTask("active", data.Job);
-        checkJobStatus("/devops-tools/v1/kubernetes/jobs/access/status/", data.Job);
+        checkJobStatus("/devops-tools/v1/kubernetes/jobs/access/status", data.Job);
       } else {
         console.error("Job creation failed:", data);
       }

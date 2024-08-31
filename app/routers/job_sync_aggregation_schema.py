@@ -86,7 +86,7 @@ async def create_aggregation_schema_job(job: Job):
     else:
         raise HTTPException(status_code=409, detail="Operation is already in progress")
 
-@router.get("/devops-tools/v1/kubernetes/jobs/aggregation/status/")
+@router.get("/devops-tools/v1/kubernetes/jobs/aggregation/status")
 async def aggregation_job_status(job_name: str):
     status = job_status(job_name, settings.JOB_AG_SYNC_SOURCE_NAMESPACE)
     if status not in range(200, 299) and type(status) == int:
