@@ -443,13 +443,14 @@ function checkJobStatusImportCSVTaxAndMoadian(jobName) {
   }
 
   function ajaxRequestAceessListTable(params) {
-    url = prepend_url("/devops-tools/v1/access/endpoint/list")
+    const url = prepend_url("/devops-tools/v1/access/endpoint/list")
   
     const pageNumber = (params.data.offset / params.data.limit) + 1;
     const pageSize = params.data.limit;
     const searchTerm = params.data.search;
     
-    $.ajax(url, {
+    $.ajax({
+        url: url,
         type: 'GET',
         headers: {
           Authorization: token,
@@ -473,13 +474,14 @@ function checkJobStatusImportCSVTaxAndMoadian(jobName) {
   }
 
 function ajaxRequestPermissionTable(params) {
-  url = prepend_url("/devops-tools/v1/access/permissions/list")
+  const url = prepend_url("/devops-tools/v1/access/permissions/list")
 
   const pageNumber = (params.data.offset / params.data.limit) + 1;
   const pageSize = params.data.limit;
   const searchTerm = params.data.search;
   
-  $.ajax(url, {
+  $.ajax({
+      url: url,
       type: 'GET',
       headers: {
         Authorization: token,
@@ -503,7 +505,7 @@ function ajaxRequestPermissionTable(params) {
 }
 
 function fetchAllPermissions(permissionSelect) {
-  url = prepend_url("/devops-tools/v1/access/permissions/list")
+  const url = prepend_url("/devops-tools/v1/access/permissions/list")
   const params = {
       page: 1,
       size: 100,
