@@ -4,7 +4,7 @@ var token = "";
 var hostname = "";
 
 function prepend_url(url) {
-  const notlocal = hostname.includes("bo.snapp.supply");
+  const notlocal = hostname.includes("staging-bo.snapp.supply") || hostname.includes("bo.snapp.supply");
   if (notlocal) {
     return "/api-bo" + url;
   } else {
@@ -452,6 +452,9 @@ function checkJobStatusImportCSVTaxAndMoadian(jobName) {
     
     $.ajax(url, {
         type: 'GET',
+        headers: {
+          Authorization: token,
+        },
         data: {
             page: pageNumber,
             size: pageSize,
@@ -480,6 +483,9 @@ function ajaxRequestPermissionTable(params) {
   
   $.ajax(url, {
       type: 'GET',
+      headers: {
+        Authorization: token,
+      },
       data: {
           page: pageNumber,
           size: pageSize,
@@ -508,6 +514,9 @@ function fetchAllPermissions(permissionSelect) {
   $.ajax({
       url: url,
       type: 'GET',
+      headers: {
+        Authorization: token,
+      },
       data: params,
       success: function (res) {
           const permissions = res.items;
