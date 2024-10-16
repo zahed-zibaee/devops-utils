@@ -441,4 +441,94 @@ function checkJobStatusImportCSVTaxAndMoadian(jobName) {
         setTimeout(() => checkJobStatusImportCSVTaxAndMoadian(jobName), 5000);
       });
   }
+
+  function ajaxRequestAceessListTable(params) {
+    url = prepend_url('/devops-tools/v1/access/endpoint/list')
   
+    const pageNumber = (params.data.offset / params.data.limit) + 1;
+    const pageSize = params.data.limit;
+    const searchTerm = params.data.search;
+    console.log(params)
+    
+    $.ajax(url, {
+        type: 'GET',
+        data: {
+            page: pageNumber,
+            size: pageSize,
+            search: searchTerm
+        },
+        success: function (res) {
+            params.success({
+                total: res.total,
+                rows: res.items
+            });
+        },
+        error: function (jqXHR, status, error) {
+            console.error("Error loading data:", error);
+            params.error(error);
+        }
+    });
+  }
+
+function ajaxRequestPermissionTable(params) {
+  url = prepend_url('/devops-tools/v1/access/permissions/list')
+
+  const pageNumber = (params.data.offset / params.data.limit) + 1;
+  const pageSize = params.data.limit;
+  const searchTerm = params.data.search;
+  console.log(params)
+  
+  $.ajax(url, {
+      type: 'GET',
+      data: {
+          page: pageNumber,
+          size: pageSize,
+          search: searchTerm
+      },
+      success: function (res) {
+          params.success({
+              total: res.total,
+              rows: res.items
+          });
+      },
+      error: function (jqXHR, status, error) {
+          console.error("Error loading data:", error);
+          params.error(error);
+      }
+  });
+}
+
+function fetchAllPermissions(permissionSelect) {
+  url = prepend_url('/devops-tools/v1/access/permissions/list')
+  const params = {
+      page: 1,
+      size: 100,
+  };
+
+  $.ajax({
+      url: url,
+      type: 'GET',
+      data: params,
+      success: function (res) {
+          const permissions = res.items;
+
+          permissionSelect.clearChoices();
+
+          permissions.forEach(permission => {
+              permissionSelect.setChoices([{
+                  value: permission.id,
+                  label: permission.label,
+                  selected: false,
+                  disabled: false,
+              }], 'value', 'label', false);
+
+          });
+
+      },
+      error: function (jqXHR, status, error) {
+          console.error("Error loading data:", error);
+      }
+  });
+}
+
+

@@ -38,13 +38,27 @@
         class="nav-link"
         id="access-tab"
         data-bs-toggle="tab"
-        data-bs-target="#access"
+        data-bs-target="#access-permissions"
         type="button"
         role="tab"
         aria-controls="access"
         aria-selected="false"
       >
-        Access
+        Permissions
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link"
+        id="access-rules-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#access-rules"
+        type="button"
+        role="tab"
+        aria-controls="access-rules"
+        aria-selected="false"
+      >
+        Access Rules
       </button>
     </li>
   </ul>
@@ -106,21 +120,211 @@
       </div>
     </div>
     <div
-      class="tab-pane fade"
-      id="access"
-      role="tabpanel"
-      aria-labelledby="access-tab"
-    >
-      <div class="d-flex justify-content-end my-3">
-        <button
-          id="access-sync-button"
-          type="button"
-          class="btn btn-primary mx-1"
-        >
-          Sync Tables
-        </button>
-      </div>
+    class="tab-pane fade"
+    id="access-permissions"
+    role="tabpanel"
+    aria-labelledby="access-tab"
+>
+    <div class="container-lg">
+        <div class="table-responsive">
+            <div class="table-wrapper">
+                <div class="table-title">
+                    <div class="row">
+                        <div class="col-sm-4 d-flex justify-content-end">
+                            <div id="permission-toolbar">
+                                <div class="form-inline" role="form">
+                                    <button id="createPermissionButton" type="button" class="btn btn-primary">
+                                        <i class="bi bi-plus h6"></i> Create Permissions
+                                    </button>
+                                    <button id="access-sync-button" type="button" class="btn btn-primary">
+                                      <i class="bi bi-plus h6"></i>Sync Table
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <table 
+                    class="table table-bordered" 
+                    id="accessListPermissions"
+                    data-toggle="table"
+                    data-locale="en-US"
+                    data-pagination="true"
+                    data-side-pagination="server"  
+                    data-page-list="[10, 25, 50, 100]"
+                    data-toolbar="#permission-toolbar"
+                    data-page-size="10"
+                    data-search="true"
+                    data-ajax="ajaxRequestPermissionTable"
+                >
+                    <thead>
+                        <tr>
+                            <th data-field="id">ID</th>
+                            <th data-field="slug">Slug</th>
+                            <th data-field="label">Label</th>
+                            <th data-field="actions" data-formatter="actionFormatterPermissionsTable" data-events="actionEvents">Actions</th> 
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Rows will be dynamically filled from the API -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
+</div>
+
+    <div class="select d-none">
+      <select class="form-control" id="locale">
+        <option value="en-US" selected>en-US</option>
+      </select>
+    </div>
+    <div
+    class="tab-pane fade"
+    id="access-rules"
+    role="tabpanel"
+    aria-labelledby="access-rules"
+  >
+
+
+  <div class="container-lg">
+    <div class="table-responsive">
+        <div class="table-wrapper">
+            <div class="table-title">
+                <div class="row">
+                    <div class="col-sm-4 d-flex justify-content-end">
+                        <div id="toolbar">
+                            <div class="form-inline" role="form">
+                                <button id="accessTableCreate" type="button" class="btn btn-primary">
+                                    <i class="bi bi-plus h6"></i> Create Access
+                                </button>
+                                <button id="access-sync-button" type="button" class="btn btn-primary">
+                                  <i class="bi bi-plus h6"></i>Sync Table
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <table 
+                class="table table-bordered" 
+                id="accessListTable"
+                data-toggle="table"
+                data-locale="en-US"
+                data-pagination="true"
+                data-side-pagination="server"  
+                data-page-list="[10, 25, 50, 100]"
+                data-toolbar="#toolbar"
+                data-page-size="10"
+                data-search="true"
+                data-ajax="ajaxRequestAceessListTable"
+            >
+                <thead>
+                    <tr>
+                        <th data-field="id">ID</th>
+                        <th data-field="slug">Slug</th>
+                        <th data-field="path">Path</th>
+                        <th data-field="method">Method</th>
+                        <th data-field="permission_ids">Permission IDs</th>
+                        <th data-field="public">Public</th>
+                        <th data-field="actions" data-formatter="actionFormatterAccessTable" data-events="actionEvents">Actions</th> 
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Rows will be dynamically filled from the API -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+        <div class="modal fade" id="editModalAccessTable" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+          <div class="modal-dialog">
+              <div class="modal-content">
+                  <div class="modal-header">
+                      <h5 class="modal-title" id="editModalAccessTable">Edit Access Rule</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                      <form id="editFormAccessTable">
+                        <input type="hidden" id="editIdAccessTable"> <!-- Hidden field to store the rule ID -->
+                          <div class="mb-3">
+                              <label for="slug" class="form-label">Slug</label>
+                              <input type="text" class="form-control" id="editSlugAccessTable" placeholder="Enter Slug">
+                          </div>
+                          <div class="mb-3">
+                              <label for="path" class="form-label">Path</label>
+                              <input type="text" class="form-control" id="editPathAccessTable" placeholder="Enter Path">
+                          </div>
+                          <div class="mb-3">
+                            <label for="permission_ids" class="form-label">Permission IDs</label>
+                            <select id="editPermissionIdsAccessTable" class="form-control" multiple></select>
+                          </div>
+                          <div class="mb-3">
+                              <label for="method" class="form-label">Method</label>
+                              <select class="form-control" id="editMethodAccessTable">
+                                  <option value="GET">GET</option>
+                                  <option value="POST">POST</option>
+                                  <option value="DELETE">DELETE</option>
+                                  <option value="PATCH">PATCH</option>
+                                  <option value="PUT">PUT</option>
+                              </select>
+                          </div>
+                          <div class="mb-3">
+                            <label for="public" class="form-label">Public</label>
+                            <input type="checkbox" id="editPublicAccessTable">
+                        </div>
+                      </form>
+                  </div>
+                  <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                      <button type="button" class="btn btn-primary" id="saveChangesButtonAccessTable">Save Changes</button>
+                  </div>
+              </div>
+          </div>
+        </div>
+          </div>
+   <div class="modal fade" id="editModalPermissionTable" tabindex="-1" aria-labelledby="editModalPermissionLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalPermissionLabel">Edit Permission</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editFormPermissionTable">
+                  <input type="hidden" id="editIdPermissionTable"> <!-- Hidden field for permission ID -->
+                    <div class="mb-3">
+                        <label for="editSlugPermissionTable" class="form-label">Slug</label>
+                        <input 
+                            type="text" 
+                            class="form-control" 
+                            id="editSlugPermissionTable" 
+                            placeholder="Enter Slug" 
+                            required 
+                        />
+                    </div>
+                    <div class="mb-3">
+                        <label for="editLabelPermissionTable" class="form-label">Label</label>
+                        <input 
+                            type="text" 
+                            class="form-control" 
+                            id="editLabelPermissionTable" 
+                            placeholder="Enter Label" 
+                            required 
+                        />
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="saveChangesButtonPermissionTable">Save Changes</button>
+            </div>
+        </div>
+    </div>
+  </div>
   </div>
 </div>
 
@@ -138,7 +342,6 @@
   var lastOrderLock = -1;
   var hostname = "";
   var token = "";
-
   window.addEventListener("message", function (event) {
     if (!!event.data && !!event.data.hostname && !!event.data.token) {
       hostname = event.data.hostname;
@@ -167,7 +370,209 @@
   });
 
   syncAccessButton.addEventListener("click", () => {
-    syncAccess()
-  })
+     syncAccess()
+  });
+  var $table = $("#table");
+  function initTable() {
+    $table.bootstrapTable("destroy").bootstrapTable({
+      height: 600,
+      locale: $("#locale").val(),
+    });
+  }
+  $(function () {
+    initTable();
+    $("#locale").change(initTable);
+  });
+
+  function actionFormatterAccessTable(value, row, index) {
+          return [
+              '<button class="btn btn-sm btn-primary btn-edit-access-table" title="Edit"><i class="bi bi-pencil-square"></i> Edit</button>',
+              '<button class="btn btn-sm btn-danger btn-delete-access-table" title="Delete"><i class="bi bi-trash"></i> Delete</button>'
+          ].join(' ');
+  }
+
+  function actionFormatterPermissionsTable(value, row, index) {
+          return [
+              '<button class="btn btn-sm btn-primary btn-edit-permission-table" title="Edit"><i class="bi bi-pencil-square"></i> Edit</button>',
+              '<button class="btn btn-sm btn-danger btn-delete-permission-table" title="Delete"><i class="bi bi-trash"></i> Delete</button>'
+          ].join(' ');
+  }
+
+  window.actionEvents = {
+      'click .btn-edit-access-table': function (e, value, row, index) {
+        document.getElementById('editSlugAccessTable').value = row.slug;
+        document.getElementById('editPathAccessTable').value = row.path;
+        document.getElementById('editMethodAccessTable').value = row.method;
+        document.getElementById('editIdAccessTable').value = row.id;
+        document.getElementById('editPublicAccessTable').checked = row.public;
+
+        const editModalAccessTable = new bootstrap.Modal(document.getElementById('editModalAccessTable'));
+        editModalAccessTable.show();
+
+      },
+      'click .btn-delete-access-table': function (e, value, row, index) {
+        url = prepend_url(`devops-tools/v1/access/endpoint/${row.id}`)
+        if (confirm('Are you sure you want to delete this item?')) {
+          $.ajax(url, {
+              type: 'DELETE',
+              success: function() {
+                  alert('Item deleted successfully!');
+                  $('#accessListTable').bootstrapTable('refresh');
+              },
+              error: function(jqXHR, textStatus, errorThrown) {
+                  console.error('Error deleting item:', textStatus, errorThrown);
+                  alert('Error deleting item.');
+            }
+          });
+        }
+      },
+      'click .btn-edit-permission-table': function (e, value, row, index) {
+          document.getElementById('editSlugPermissionTable').value = row.slug;
+          document.getElementById('editLabelPermissionTable').value = row.label;
+          document.getElementById('editIdPermissionTable').value = row.id;
+
+          const editModalPermissionTable = new bootstrap.Modal(document.getElementById('editModalPermissionTable'));
+          editModalPermissionTable.show();
+      },
+      'click .btn-delete-permission-table': function (e, value, row, index) {
+          url = prepend_url(`/devops-tools/v1/access/permissions/${row.id}`)
+          if (confirm('Are you sure you want to delete this item?')) {
+            $.ajax(url, {
+                type: 'DELETE',
+                success: function() {
+                    alert('Item deleted successfully!');
+                    $('#accessListPermissions').bootstrapTable('refresh');
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error('Error deleting item:', textStatus, errorThrown); // Log the error details
+                    alert('Error deleting item.');
+                }
+          });
+        }
+      }
+  };
+
+document.getElementById('accessTableCreate').addEventListener('click', function () {
+    document.getElementById('editSlugAccessTable').value = '';
+    document.getElementById('editPathAccessTable').value = '';
+    document.getElementById('editPermissionIdsAccessTable').value = '';
+    document.getElementById('editMethodAccessTable').value = 'GET';
+    document.getElementById('editIdAccessTable').value = '';
+    document.getElementById('editPublicAccessTable').checked = false;
+
+    const editModalAccessTable = new bootstrap.Modal(document.getElementById('editModalAccessTable'));
+    editModalAccessTable.show();
+
+    document.getElementById('saveChangesButtonAccessTable').dataset.mode = 'create';
+});
+
+document.getElementById('createPermissionButton').addEventListener('click', function () {
+    document.getElementById('editSlugPermissionTable').value = '';
+    document.getElementById('editLabelPermissionTable').value = '';
+    document.getElementById('editIdPermissionTable').value = '';
+
+    const editModalPermissionTable = new bootstrap.Modal(document.getElementById('editModalPermissionTable'));
+    editModalPermissionTable.show();
+
+    document.getElementById('saveChangesButtonPermissionTable').dataset.mode = 'create';
+});
+
+document.getElementById('saveChangesButtonPermissionTable').addEventListener('click', function () {
+    const mode = this.dataset.mode;
+    const ruleId = document.getElementById('editIdPermissionTable').value || null;
+    const slug = document.getElementById('editSlugPermissionTable').value;
+    const label = document.getElementById('editLabelPermissionTable').value;
+    create_url = prepend_url('/devops-tools/v1/access/permissions/create')
+    update_url = prepend_url(`/devops-tools/v1/access/permissions/update/${ruleId}`)
+
+    const url = mode === 'create' ? create_url : update_url;
+    const methodType = mode === 'create' ? 'POST' : 'PUT';
+
+    $.ajax(url, {
+        type: methodType,
+        headers: {
+            'accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        data: JSON.stringify({
+            id: ruleId,
+            slug: slug,
+            label: label,
+        }),
+        success: function(response) {
+            const action = mode === 'create' ? 'created' : 'updated';
+            alert(`Access rule ${action} successfully!`);
+            $('#accessListPermissions').bootstrapTable('refresh');
+            $('#editModalPermissionTable').modal('hide');
+        },
+        error: function() {
+            alert(`Error ${mode === 'create' ? 'creating' : 'updating'} access rule.`);
+        }
+    });
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+    const permissionSelect = new Choices('#editPermissionIdsAccessTable', {
+        removeItemButton: true,
+        searchEnabled: true,
+        placeholderValue: 'Select permissions',
+        noResultsText: 'No permissions found',
+        noChoicesText: 'No more permissions to load',
+    });
+
+    fetchAllPermissions(permissionSelect);
+
+    const searchInput = document.querySelector('.choices__input--cloned');
+    searchInput.addEventListener('input', function (event) {
+        const searchTerm = event.target.value.toLowerCase();
+        const filteredChoices = permissionSelect.getChoices().filter(choice => {
+            return choice.label.toLowerCase().includes(searchTerm);
+        });
+
+        permissionSelect.clearChoices();
+        permissionSelect.setChoices(filteredChoices, 'value', 'label', true);
+    });
+
+    document.getElementById('saveChangesButtonAccessTable').addEventListener('click', function () {
+
+      const mode = this.dataset.mode;
+      const ruleId = document.getElementById('editIdAccessTable').value || null;
+      const slug = document.getElementById('editSlugAccessTable').value;
+      const path = document.getElementById('editPathAccessTable').value;
+      const permissionIds = permissionSelect.getValue(true)
+      const method = document.getElementById('editMethodAccessTable').value;
+      const isPublic = document.getElementById('editPublicAccessTable').checked;
+      create_url = prepend_url('/devops-tools/v1/access/endpoint/create')
+      update_url = prepend_url(`/devops-tools/v1/access/endpoint/update/${ruleId}`)
+
+      const url = mode === 'create' ? create_url : update_url;
+      const methodType = mode === 'create' ? 'POST' : 'PUT';
+
+      $.ajax(url, {
+          type: methodType,
+          headers: {
+              'accept': 'application/json',
+              'Content-Type': 'application/json'
+          },
+          data: JSON.stringify({
+              id: ruleId,
+              slug: slug,
+              path: path,
+              method: method,
+              permission_ids: permissionIds,
+              public: isPublic
+          }),
+          success: function(response) {
+              const action = mode === 'create' ? 'created' : 'updated';
+              alert(`Access rule ${action} successfully!`);
+              $('#accessListTable').bootstrapTable('refresh');
+              $('#editModalAccessTable').modal('hide');
+          },
+          error: function() {
+              alert(`Error ${mode === 'create' ? 'creating' : 'updating'} access rule.`);
+          }
+      });
+  });
+});
 </script>
 {% endblock %}

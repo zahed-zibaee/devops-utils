@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.core.config import settings
@@ -83,12 +83,17 @@ engine_postgres_write = create_engine(
 SessionLocalWrite = sessionmaker(autocommit=False, autoflush=False, bind=engine_mysql_write)
 SessionLocalRead = sessionmaker(autocommit=False, autoflush=False, bind=engine_mysql_read)
 
+PostgresSessionLocalWrite = sessionmaker(autocommit=False, autoflush=False, bind=engine_postgres_write)
+PostgresSessionLocalRead = sessionmaker(autocommit=False, autoflush=False, bind=engine_postgres_read)
+
+Base = declarative_base()
+
 def get_db_mysql_write():
     db = SessionLocalWrite()
     try:
         yield db
     except SQLAlchemyError as e:
-        logger.error(f"Error connecting to the write database: {e}")
+        logger.error(f"Error connecting to the write mysql database: {e}")
         raise
     finally:
         db.close()
@@ -98,7 +103,27 @@ def get_db_mysql_read():
     try:
         yield db
     except SQLAlchemyError as e:
-        logger.error(f"Error connecting to the write database: {e}")
+        logger.error(f"Error connecting to the read mysql database: {e}")
+        raise
+    finally:
+        db.close()
+
+def get_db_postgres_read():
+    db = PostgresSessionLocalRead()
+    try:
+        yield db
+    except SQLAlchemyError as e:
+        logger.error(f"Error connecting to the read postgres database: {e}")
+        raise
+    finally:
+        db.close()
+
+def get_db_postgres_write():
+    db = PostgresSessionLocalWrite()
+    try:
+        yield db
+    except SQLAlchemyError as e:
+        logger.error(f"Error connecting to the write postgres database: {e}")
         raise
     finally:
         db.close()
