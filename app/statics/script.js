@@ -227,7 +227,7 @@ function exportProductTaxAndMoadian() {
 }
 
 function ajaxRequestProductTaxMoadian(params) {
-  const url = prepend_url("/devops-tools/v1/products/tax_and_moadian/list");
+  const url = prepend_url("/api-bo/devops-tools/v1/products/tax_and_moadian/list");
   $.ajax({
     url: url + "?" + $.param(params.data),
     type: "GET",
@@ -244,7 +244,7 @@ function ajaxRequestProductTaxMoadian(params) {
 }
 
 function ajaxRequestGetOrderLock() {
-  const url = prepend_url("/devops-tools/v1/order/lock");
+  const url = prepend_url("/api-bo/devops-tools/v1/order/lock");
   $.ajax({
     url: url,
     type: "GET",
