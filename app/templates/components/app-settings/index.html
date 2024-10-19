@@ -345,14 +345,12 @@
   window.addEventListener("message", function (event) {
     if (!!event.data && !!event.data.hostname && !!event.data.token) {
       hostname = event.data.hostname;
-      console.log("Hostname received from the parent: " + hostname);
       token = event.data.token;
       ajaxRequestGetOrderLock();
       $accessTable.bootstrapTable("refresh");
       $accessPermissions.bootstrapTable("refresh");
       $("#loadOverlay").prop("style", "display: none;");
       domLoaded();
-      console.log("Message received from the parent: " + event.data);
     }
   });
 
@@ -414,7 +412,7 @@
 
       },
       'click .btn-delete-access-table': function (e, value, row, index) {
-        url = prepend_url(`devops-tools/v1/access/endpoint/${row.id}`)
+        url = prepend_url(`/devops-tools/v1/access/endpoint/${row.id}`)
         if (confirm('Are you sure you want to delete this item?')) {
           $.ajax({
               url: url,
