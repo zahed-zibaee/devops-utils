@@ -448,7 +448,8 @@ function checkJobStatusImportCSVTaxAndMoadian(jobName) {
     const pageNumber = (params.data.offset / params.data.limit) + 1;
     const pageSize = params.data.limit;
     const searchTerm = params.data.search;
-    
+    console.log("Token:")
+    console.log(token)
     $.ajax({
         url: url,
         type: 'GET',
@@ -479,7 +480,10 @@ function ajaxRequestPermissionTable(params) {
   const pageNumber = (params.data.offset / params.data.limit) + 1;
   const pageSize = params.data.limit;
   const searchTerm = params.data.search;
-  
+
+
+  console.log("Token:")
+  console.log(token)
   $.ajax({
       url: url,
       type: 'GET',
