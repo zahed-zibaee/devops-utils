@@ -419,6 +419,9 @@
           $.ajax({
               url: url,
               type: 'DELETE',
+              headers: {
+                Authorization: token,
+              },
               success: function() {
                   alert('Item deleted successfully!');
                   $('#accessListTable').bootstrapTable('refresh');
@@ -443,6 +446,9 @@
           if (confirm('Are you sure you want to delete this item?')) {
             $.ajax({
                 url: url,
+                headers: {
+                  Authorization: token,
+                },
                 type: 'DELETE',
                 success: function() {
                     alert('Item deleted successfully!');
@@ -498,7 +504,8 @@ document.getElementById('saveChangesButtonPermissionTable').addEventListener('cl
         type: methodType,
         headers: {
             'accept': 'application/json',
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            Authorization: token,
         },
         data: JSON.stringify({
             id: ruleId,
@@ -559,7 +566,8 @@ function domLoaded() {
           type: methodType,
           headers: {
               'accept': 'application/json',
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              Authorization: token,
           },
           data: JSON.stringify({
               id: ruleId,
