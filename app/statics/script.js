@@ -443,7 +443,7 @@ function checkJobStatusImportCSVTaxAndMoadian(jobName) {
   }
 
   function ajaxRequestAceessListTable(params) {
-    const url = prepend_url("/api-bo/devops-tools/v1/access/endpoint/list")
+    const url = prepend_url("/devops-tools/v1/access/endpoint/list")
   
     const pageNumber = (params.data.offset / params.data.limit) + 1;
     const pageSize = params.data.limit;
@@ -475,7 +475,7 @@ function checkJobStatusImportCSVTaxAndMoadian(jobName) {
   }
 
 function ajaxRequestPermissionTable(params) {
-  const url = prepend_url("/api-bo/devops-tools/v1/access/permissions/list")
+  const url = prepend_url("/devops-tools/v1/access/permissions/list")
 
   const pageNumber = (params.data.offset / params.data.limit) + 1;
   const pageSize = params.data.limit;
@@ -507,7 +507,7 @@ function ajaxRequestPermissionTable(params) {
 }
 
 function fetchAllPermissions(permissionSelect) {
-  const url = prepend_url("/api-bo/devops-tools/v1/access/permissions/list")
+  const url = prepend_url("/devops-tools/v1/access/permissions/list")
   const params = {
       page: 1,
       size: 100,
