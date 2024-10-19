@@ -334,7 +334,8 @@
 </div>
 
 <script>
-    var $table = $("#table");
+  var $accessTable = $("#accessListTable");
+  var $accessPermissions = $("accessListPermissions")
   const uploadButton = document.getElementById("upload-button");
   const resetButton = document.getElementById("reset-button");
   const syncTablesButton = document.getElementById("sync-tables-button");
@@ -347,7 +348,8 @@
       console.log("Hostname received from the parent: " + hostname);
       token = event.data.token;
       ajaxRequestGetOrderLock();
-      $table.bootstrapTable("refresh");
+      $accessTable.bootstrapTable("refresh");
+      $accessPermissions.bootstrapTable("refresh");
       $("#loadOverlay").prop("style", "display: none;");
       console.log("Message received from the parent: " + event.data);
     }
