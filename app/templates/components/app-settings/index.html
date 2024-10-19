@@ -136,7 +136,7 @@
                                     <button id="createPermissionButton" type="button" class="btn btn-primary">
                                         <i class="bi bi-plus h6"></i> Create Permissions
                                     </button>
-                                    <button id="access-sync-button" type="button" class="btn btn-primary">
+                                    <button id="access-sync-button-permission" type="button" class="btn btn-primary">
                                       <i class="bi bi-plus h6"></i>Sync Table
                                     </button>
                                 </div>
@@ -199,7 +199,7 @@
                                 <button id="accessTableCreate" type="button" class="btn btn-primary">
                                     <i class="bi bi-plus h6"></i> Create Access
                                 </button>
-                                <button id="access-sync-button" type="button" class="btn btn-primary">
+                                <button id="access-sync-button-endpoint" type="button" class="btn btn-primary">
                                   <i class="bi bi-plus h6"></i>Sync Table
                                 </button>
                             </div>
@@ -340,7 +340,8 @@
   const resetButton = document.getElementById("reset-button");
   const syncTablesButton = document.getElementById("sync-tables-button");
   const syncSchemaButton = document.getElementById("sync-views-button");
-  const syncAccessButton = document.getElementById("access-sync-button");
+  const syncAccessButtonEndpoints = document.getElementById("access-sync-button-endpoint");
+  const syncAccessButtonPermissions = document.getElementById("access-sync-button-permission");
   var lastOrderLock = -1;
   window.addEventListener("message", function (event) {
     if (!!event.data && !!event.data.hostname && !!event.data.token) {
@@ -370,9 +371,14 @@
     syncAggregationCreate("views");
   });
 
-  syncAccessButton.addEventListener("click", () => {
+  syncAccessButtonEndpoints.addEventListener("click", () => {
      syncAccess()
   });
+
+  syncAccessButtonPermissions.addEventListener("click", () => {
+     syncAccess()
+  });
+
   var $table = $("#table");
   function initTable() {
     $table.bootstrapTable("destroy").bootstrapTable({
