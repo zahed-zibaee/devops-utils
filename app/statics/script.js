@@ -482,8 +482,6 @@ function ajaxRequestPermissionTable(params) {
   const searchTerm = params.data.search;
 
 
-  console.log("Token:")
-  console.log(token)
   $.ajax({
       url: url,
       type: 'GET',

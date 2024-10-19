@@ -334,20 +334,20 @@
 </div>
 
 <script>
+    var $table = $("#table");
   const uploadButton = document.getElementById("upload-button");
   const resetButton = document.getElementById("reset-button");
   const syncTablesButton = document.getElementById("sync-tables-button");
   const syncSchemaButton = document.getElementById("sync-views-button");
   const syncAccessButton = document.getElementById("access-sync-button");
   var lastOrderLock = -1;
-  var hostname = "";
-  var token = "";
   window.addEventListener("message", function (event) {
     if (!!event.data && !!event.data.hostname && !!event.data.token) {
       hostname = event.data.hostname;
       console.log("Hostname received from the parent: " + hostname);
       token = event.data.token;
       ajaxRequestGetOrderLock();
+      $table.bootstrapTable("refresh");
       $("#loadOverlay").prop("style", "display: none;");
       console.log("Message received from the parent: " + event.data);
     }
