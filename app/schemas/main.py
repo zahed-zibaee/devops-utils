@@ -1,4 +1,4 @@
-from pydantic import BaseModel, conint
+from pydantic import BaseModel, conint, Field
 from typing import Optional, List
 from fastapi import Query
 from sqlalchemy import Column, Integer, String, Boolean
@@ -19,14 +19,27 @@ class Product(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String)
-    tax_rate = Column(Integer)
-    moadian_product_id = Column(String)
+    tax_rate = Column(Integer, nullable=True)
+    moadian_product_id = Column(String, nullable=False)
     status = Column(Boolean)
     state = Column(Boolean)
     
     def get_table_name(self):
         return self.__tablename__
 
+class ProductUpdate(BaseModel):
+    tax_rate: int = Field(None, ge=0, le=100)
+    moadian_product_id: str
+
+class ProductUpdateResponse(BaseModel):
+    id: int
+    name: str
+    tax_rate: Optional[int]
+    moadian_product_id: str
+    
+    class Config:
+        from_attributes = True
+       
 class EditOrderLock(BaseModel):
     lock: conint(ge=0, le=10000)
 
@@ -58,7 +71,7 @@ class AccessBase(BaseModel):
     public: bool
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class AccessUpdate(BaseModel):
     id: int
@@ -69,14 +82,14 @@ class AccessUpdate(BaseModel):
     public: Optional[bool]
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class PermissionsBase(BaseModel):
     label: str
     slug: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class PermissionsUpdate(BaseModel):
     id: int
@@ -84,7 +97,7 @@ class PermissionsUpdate(BaseModel):
     slug: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class PermissionLabels(BaseModel):
     label: str

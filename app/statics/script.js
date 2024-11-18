@@ -19,123 +19,166 @@ function notEmpty(el) {
 function createToast(message, severity, status = 500, delay = 5000) {
   const toastTemplate = document.getElementById("toastTemplate");
   const toastClone = toastTemplate.cloneNode(true);
-  toastClone.id = "";
+  toastClone.id = ""; 
 
-  if (severity != "success") {
-    toastClone.querySelector(".alert-message").textContent =
-      "Error " + status + ": " + message;
-  } else {
-    toastClone.querySelector(".alert-message").textContent = message;
+  
+  const alertMessage = toastClone.querySelector(".alert-message");
+  alertMessage.textContent =
+    severity === "success" ? message : `Error ${status}: ${message}`;
+
+  
+  const severityConfig = {
+    warning: {
+      alertClass: "alert-warning",
+      iconClass: "bi-exclamation-triangle-fill",
+    },
+    error: {
+      alertClass: "alert-danger",
+      iconClass: "bi-exclamation-triangle-fill",
+      customDelay: 30000,
+    },
+    success: {
+      alertClass: "alert-success",
+      iconClass: "bi-check-circle-fill",
+    },
+  };
+
+  const config = severityConfig[severity];
+  if (!config) {
+    console.error(`Invalid severity: ${severity}`);
+    return;
   }
 
-  if (severity == "warning") {
-    toastClone.querySelector(".alert").classList.add("alert-warning");
-    toastClone
-      .querySelector(".svg-icon")
-      .classList.add("bi-exclamation-triangle-fill");
-  } else if (severity == "error") {
-    delay = 30000;
-    toastClone.querySelector(".alert").classList.add("alert-danger");
-    toastClone
-      .querySelector(".svg-icon")
-      .classList.add("bi-exclamation-triangle-fill");
-  } else if (severity == "success") {
-    toastClone.querySelector(".alert").classList.add("alert-success");
-    toastClone.querySelector(".svg-icon").classList.add("bi-check-circle-fill");
-  } else {
-    return -1;
-  }
+  const alertElement = toastClone.querySelector(".alert");
+  alertElement.classList.add(config.alertClass);
+  toastClone.querySelector(".svg-icon").classList.add(config.iconClass);
 
+  
+  const effectiveDelay = config.customDelay || delay;
+
+  
   const toastContainer = document.getElementById("toastContainer");
   toastContainer.appendChild(toastClone);
 
-  const bsToast = new bootstrap.Toast(toastClone, { delay });
+  const bsToast = new bootstrap.Toast(toastClone, { delay: effectiveDelay });
   bsToast.show();
 
-  toastClone.addEventListener("hidden.bs.toast", () => {
-    toastClone.remove();
-  });
+  
+  toastClone.addEventListener("hidden.bs.toast", () => toastClone.remove());
 }
 
 function createOrUpdateToastTask(status, jobName) {
-  if (!document.getElementById("toast-" + jobName)) {
+  const toastId = `toast-${jobName}`;
+  let existingToast = document.getElementById(toastId);
+
+  
+  if (!existingToast) {
     const toastTemplate = document.getElementById("toastTemplate");
-    const existingToast = toastTemplate.cloneNode(true);
-    existingToast.id = "toast-" + jobName;
+    existingToast = toastTemplate.cloneNode(true);
+    existingToast.id = toastId;
+
     const toastContainer = document.getElementById("toastContainer");
     toastContainer.appendChild(existingToast);
   }
-  let existingToast = document.getElementById("toast-" + jobName);
-  if (status == "active") {
-    existingToast.querySelector(".alert").classList.add("alert-light");
-    existingToast
-      .querySelector(".svg-icon")
-      .classList.add("bi-hourglass-split");
-    existingToast.querySelector(".alert-message").textContent =
-      "Job " + jobName + " Status: Active";
-    const bsToast = new bootstrap.Toast(existingToast, { autohide: false });
-    bsToast.show();
-  } else if (status == "pending") {
-    existingToast.querySelector(".alert").classList.add("alert-warning");
-    existingToast.querySelector(".alert").classList.remove("alert-light");
-    existingToast.querySelector(".alert-message").textContent =
-      "Job " + jobName + " Status: Pending";
-  } else if (status == "succeeded") {
-    existingToast.querySelector(".alert").classList.add("alert-success");
-    existingToast.querySelector(".alert").classList.remove("alert-warning");
-    existingToast.querySelector(".alert").classList.remove("alert-light");
-    existingToast.querySelector(".svg-icon").classList.add("bi-check2-circle");
-    existingToast.querySelector(".alert-message").textContent =
-      "Job " + jobName + " Status: Succeeded";
-    existingToast
-      .querySelector(".svg-icon")
-      .classList.remove("bi-hourglass-split");
-  } else if (status == "failed") {
-    existingToast.querySelector(".alert").classList.add("alert-danger");
-    existingToast.querySelector(".alert").classList.remove("alert-warning");
-    existingToast.querySelector(".alert").classList.remove("alert-light");
-    existingToast
-      .querySelector(".svg-icon")
-      .classList.add("bi-exclamation-triangle-fill");
-    existingToast.querySelector(".alert-message").textContent =
-      "Job " + jobName + " Status: Failed";
-    existingToast
-      .querySelector(".svg-icon")
-      .classList.remove("bi-hourglass-split");
+
+  
+  const statusConfig = {
+    active: {
+      alertClass: "alert-light",
+      iconClass: "bi-hourglass-split",
+      message: `Job ${jobName} Status: Active`,
+      autohide: false,
+    },
+    pending: {
+      alertClass: "alert-warning",
+      iconClass: "bi-hourglass-split",
+      message: `Job ${jobName} Status: Pending`,
+      autohide: false,
+    },
+    succeeded: {
+      alertClass: "alert-success",
+      iconClass: "bi-check2-circle",
+      message: `Job ${jobName} Status: Succeeded`,
+      autohide: false,
+    },
+    failed: {
+      alertClass: "alert-danger",
+      iconClass: "bi-exclamation-triangle-fill",
+      message: `Job ${jobName} Status: Failed`,
+      autohide: false,
+    },
+  };
+
+  const config = statusConfig[status];
+  if (!config) {
+    console.error(`Invalid status: ${status}`);
+    return;
   }
 
-  existingToast.addEventListener("hidden.bs.toast", () => {
-    existingToast.remove();
+  
+  const alertElement = existingToast.querySelector(".alert");
+  alertElement.className = `alert me-auto d-flex align-items-center justify-content-between mb-0 ${config.alertClass}`;
+  const iconElement = existingToast.querySelector(".svg-icon");
+  iconElement.className = `svg-icon bi h4 me-2 my-auto ${config.iconClass}`;
+  existingToast.querySelector(".alert-message").textContent = config.message;
+
+  
+  const bsToast = new bootstrap.Toast(existingToast, {
+    autohide: config.autohide !== false,
   });
+  bsToast.show();
+
+  
+  existingToast.addEventListener("hidden.bs.toast", () => existingToast.remove());
 }
 
 function inProgress() {
-  if (notEmpty($("#wrapper"))) {
-    var wrapper = $("#wrapper");
-    wrapper.prop("style", "cursor: not-allowed;");
+  const wrapper = $("#wrapper");
+  const actionButtons = $(".btn");
+  const loadOverlay = $("#loadOverlay");
+  if (notEmpty(wrapper)) {
+    wrapper.prop("style", "cursor: not-allowed; pointer-events: none;");
   }
-  if (notEmpty($("#upload-button"))) {
-    var buttonUpdate = $("#upload-button");
-    buttonUpdate.prop("disabled", true);
+  if (notEmpty(actionButtons)) {
+    actionButtons.prop("disabled", true);
+    actionButtons.addClass("disabled");
   }
-  if (notEmpty($("#reset-button"))) {
-    var buttonReset = $("#reset-button");
-    buttonReset.prop("disabled", true);
+  if (notEmpty(loadOverlay)) {
+    loadOverlay.prop("style", "display:flex;")
   }
 }
 
 function finishedProgress() {
-  if (notEmpty($("#wrapper"))) {
-    var wrapper = $("#wrapper");
+  const wrapper = $("#wrapper");
+  const actionButtons = $(".btn");
+  const loadOverlay = $("#loadOverlay");
+  if (notEmpty(wrapper)) {
     wrapper.prop("style", "");
   }
-  if (notEmpty($("#upload-button"))) {
-    var buttonUpdate = $("#upload-button");
-    buttonUpdate.prop("disabled", false);
+  if (notEmpty(actionButtons)) {
+    actionButtons.prop("disabled", false);
+    actionButtons.removeClass("disabled");
   }
-  if (notEmpty($("#reset-button"))) {
-    var buttonReset = $("#reset-button");
-    buttonReset.prop("disabled", false);
+  if (notEmpty(loadOverlay)) {
+    loadOverlay.prop("style", "display:none;");
+  }
+}
+
+function isJSONObject(obj) {
+  return obj !== null
+      &&
+      typeof obj === 'object'
+      &&
+      obj.constructor === Object;
+}
+
+function handleErrors(status, message) {
+  if (isJSONObject(message)) {
+    createToast(JSON.stringify(message), "error", status);
+    console.error("Error :" + JSON.stringify(message));
+  } else {
+    createToast(message, "error", status);
+    console.error("Error :" + message);
   }
 }
 
@@ -162,12 +205,14 @@ function updateSettings() {
     statusCode: {
       200: function (res) {
         createToast("Order lock Updated.", "success");
-        finishedProgress();
         lastOrderLock = orderLock;
       },
     },
     error: function (jqXHR, status, error) {
       handleErrors(jqXHR.status, jqXHR.responseJSON);
+      
+    },
+    complete: function () {
       finishedProgress();
     },
   });
@@ -226,14 +271,63 @@ function exportProductTaxAndMoadian() {
   });
 }
 
+function ajaxEditProductTaxAndMoadian(productID) {
+  const url = prepend_url(
+    "/devops-tools/v1/products/tax_and_moadian/" + productID
+  );
+  inProgress();
+  const tax_rate = document.getElementById("editTaxRate").value;
+  const moadian_product_id = document.getElementById("editMoadianProductId").value;
+  const jsonData = JSON.stringify(
+    tax_rate === ""
+      ? { moadian_product_id: moadian_product_id }
+      : { tax_rate: tax_rate, moadian_product_id: moadian_product_id }
+  );
+  $.ajax({
+    url: url,
+    type: "PUT",
+    headers: { 
+      Authorization: token,
+      "Content-Type": "application/json",
+    },
+    data: jsonData,
+    statusCode: {
+      200: function (res) {
+        
+        createToast(
+          "Product " + res.id + " updated.",
+          "success",
+          res.status
+        );
+        $("#table").bootstrapTable("refresh");
+      },
+    },
+    error: function (jqXHR, status, error) {
+      handleErrors(jqXHR.status, jqXHR.responseJSON);
+    },
+    complete: function () {
+      finishedProgress();
+    },
+  });
+}
+
 function ajaxRequestProductTaxMoadian(params) {
   const url = prepend_url("/devops-tools/v1/products/tax_and_moadian/list");
+
   $.ajax({
     url: url + "?" + $.param(params.data),
     type: "GET",
     headers: { Authorization: token },
     statusCode: {
       200: function (res) {
+        res.rows = res.rows.map((row) => {
+          row.actions = `
+            <button class="btn btn-sm btn-primary open-modal-edit-btn" data-id="${row.id}">
+              Edit
+            </button>`;
+          return row;
+        });
+
         params.success(res);
       },
     },
@@ -260,13 +354,6 @@ function ajaxRequestGetOrderLock() {
     },
   });
 }
-
-function handleErrors(status, message) {
-  createToast(message.detail, "error", status);
-  console.error("Error :" + message.detail);
-}
-
-// sync functions
 
 function syncAggregationCreate(type) {
   const url = prepend_url(
@@ -340,9 +427,15 @@ function checkJobStatus(endpoint, jobName) {
         } else {
           createOrUpdateToastTask("active", jobName);
         }
-        if (data.Succeeded || data.Failed) {
+        if (data.Succeeded) {
           console.log(
-            `Job ${jobName} has status: ${data.Status}. Stopping further requests.`
+            `Job ${jobName} has status: Succeeded. Stopping further requests.`
+          );
+          return;
+        }
+        if (data.Failed) {
+          console.log(
+            `Job ${jobName} has status: Failed. Stopping further requests.`
           );
           return;
         }
@@ -392,13 +485,14 @@ function uploadProductTaxAndMoadian() {
     statusCode: {
       200: function (res) {
         createToast("Product CSV file uploaded. importing in process.", "success");
-        finishedProgress();
         createOrUpdateToastTask("active", taskID);
         checkJobStatusImportCSVTaxAndMoadian(taskID);
       },
     },
     error: function (jqXHR, status, error) {
       handleErrors(jqXHR.status, jqXHR.responseJSON);
+    },
+    complete: function () {
       finishedProgress();
     },
   });
@@ -425,9 +519,15 @@ function checkJobStatusImportCSVTaxAndMoadian(jobName) {
           } else {
             createOrUpdateToastTask("active", jobName);
           }
-          if (data.status == 'succeeded' || data.status == 'failed') {
+          if (data.status == 'failed') {
             console.log(
-              `Job ${jobName} has status: ${data.Status}. Stopping further requests.`
+              `Job ${jobName} has status: Failed. Stopping further requests.`
+            );
+            return;
+          }
+          if (data.status == 'succeeded') {
+            console.log(
+              `Job ${jobName} has status: Succeeded. Stopping further requests.`
             );
             return;
           }
@@ -539,5 +639,3 @@ function fetchAllPermissions(permissionSelect) {
       }
   });
 }
-
-

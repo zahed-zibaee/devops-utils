@@ -350,7 +350,7 @@
       ajaxRequestGetOrderLock();
       $accessTable.bootstrapTable("refresh");
       $accessPermissions.bootstrapTable("refresh");
-      $("#loadOverlay").prop("style", "display: none;");
+      finishedProgress();
       domLoaded();
     }
   });

@@ -11,7 +11,7 @@ import io
 import csv
 import json
 
-from app.schemas.main import GetProducts, Product
+from app.schemas.main import GetProducts, Product, ProductUpdate, ProductUpdateResponse
 from app.core.logging import logger
 from app.core.db import get_db_mysql_write, get_db_mysql_read
 from app.core.redis import lock, unlock, is_locked, set_cache, get_cache
@@ -192,14 +192,27 @@ def csv_file_validator(file: UploadFile, task_id: int, chunksize: int = 1000) ->
 def import_csv_product_tax_and_moadian(
     csv_dic_chunks,
     task_id: int,
-    db_write = next(get_db_mysql_write()), 
-    db_read = next(get_db_mysql_read())
+    db_read,
+    db_write
     ):
+    if not db_read or not db_write:
+        set_cache(
+            "product", 
+            f"import_tax_and_moadian_csv_{task_id}", 
+            json.dumps(
+                {"status": "failed", 
+                "error": "Failed to fetch database sessions. Check the generators."}), 
+            600)
+        logger.error("Failed to fetch database sessions. Check the generators.")
+        raise RuntimeError("Failed to fetch database sessions. Check the generators.")
     def update_data(dic_chunk):
         updated_products = []
+        ids = [row["id"] for row in dic_chunk]
+        products = db_read.query(Product).filter(Product.id.in_(ids)).all()
+        product_dict = {product.id: product for product in products}
         for row in dic_chunk:
             try:
-                product = db_read.query(Product).filter(Product.id == row["id"]).first()
+                product = product_dict.get(row["id"])
                 if not product:
                     logger.error("Product not found - id={_id}".format(_id=row["id"]))
                     set_cache(
@@ -222,7 +235,7 @@ def import_csv_product_tax_and_moadian(
                             ), 
                         600)
                     raise RuntimeError("Can not get product {_id} from database".format(_id=row["id"]))
-            product.tax_rate = row["tax_rate"] 
+            product.tax_rate = row["tax_rate"]
             product.moadian_product_id = row["moadian_product_id"]
             updated_products.append(product)
         return updated_products
@@ -232,13 +245,16 @@ def import_csv_product_tax_and_moadian(
             lock("PRODUCT_TAX_AND_MOARDIAN_IMPORT_CSV", 1200)
             set_cache("product", f"import_tax_and_moadian_csv_{task_id}", json.dumps({"status": "pending"}), 600)
             logger.info(f"Changing PRODUCT_TAX_AND_MOARDIAN_IMPORT_CSV lock to {is_locked('PRODUCT_TAX_AND_MOARDIAN_IMPORT_CSV')}")
-            db_write.execute(text(
-                f"UPDATE {Product().get_table_name()} SET tax_rate = Null, moadian_product_id= \"\";"
-                )
-            )
+            
+            db_write.execute(text(f"UPDATE {Product().get_table_name()} SET tax_rate = Null, moadian_product_id= \"\";"))
+
+            all_updated_products = []
             for chunk in csv_dic_chunks:
-                if len(chunk) != 0:
-                    db_write.bulk_save_objects(update_data(chunk))
+                if chunk:
+                    all_updated_products.extend(update_data(chunk))
+
+            if all_updated_products:
+                db_write.bulk_save_objects(all_updated_products)
             db_write.commit() 
             set_cache("product", f"import_tax_and_moadian_csv_{task_id}", json.dumps({"status": "succeeded"}), 600)
         except Exception as e:
@@ -274,6 +290,8 @@ async def update_products(
     background_tasks: BackgroundTasks,
     task_id: int,
     file: UploadFile = File(...), 
+    db_write: Session = Depends(get_db_mysql_write),
+    db_read: Session = Depends(get_db_mysql_read)
     ):
     """
     Uploads a CSV file and updates data in the 'products' table based on 'id'.
@@ -286,11 +304,39 @@ async def update_products(
         str: Message indicating success or error.
     """
     set_cache("product", f"import_tax_and_moadian_csv_{task_id}", json.dumps({"status": "active"}), 1260)
+    if file.content_type != "text/csv":
+        set_cache(
+            "product", 
+            f"import_tax_and_moadian_csv_{task_id}", 
+            json.dumps(
+                {"status": "failed", 
+                 "error": "Failed to read CSV file",}
+                ), 
+            600)
+        raise HTTPException(
+            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+            detail="Bad Csv file!)."
+        )
+    if not file.filename.lower().endswith('.csv'):
+        set_cache(
+            "product", 
+            f"import_tax_and_moadian_csv_{task_id}", 
+            json.dumps(
+                {"status": "failed", 
+                 "error": "Failed to read CSV file",}
+                ), 
+            600)
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Invalid file extension(only csv files!)."
+        )
     csv_dic_chunks = csv_file_validator(file, task_id, chunksize=1000)
     background_tasks.add_task(
         import_csv_product_tax_and_moadian, 
         csv_dic_chunks,
-        task_id
+        task_id,
+        db_read,
+        db_write,
     )
     return JSONResponse(content={'message': 'Task accepted for processing', "task_id": f"{task_id}"}, media_type='application/json')
     
@@ -304,3 +350,25 @@ async def update_products_status(task_id: int):
         logger.warning(f"Can not find task import csv tax_and_moadian with id {task_id}")
         return {"status": "unknown"}
 
+@router.put("/devops-tools/v1/products/tax_and_moadian/{product_id}")
+async def update_product(product_id: int, 
+                      product_data: ProductUpdate,
+                      db_write: Session = Depends(get_db_mysql_write)
+                      ) -> ProductUpdateResponse:
+
+    try:
+        product = db_write.query(Product).filter(Product.id == product_id).first()
+        if not product:
+            logger.error(f"Product not found - id={product_id}")
+            raise HTTPException(status_code=404, detail=f"Product not found - id={product_id}")
+
+        product.tax_rate = product_data.tax_rate
+        product.moadian_product_id = product_data.moadian_product_id
+
+        db_write.commit()
+        db_write.refresh(product)
+        return product
+    except Exception as e:
+        db_write.rollback()
+        logger.exception("An error occurred while updating the product.")
+        raise HTTPException(status_code=500, detail="Internal Server Error")

@@ -1,3 +1,4 @@
+from fastapi import HTTPException
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy.exc import SQLAlchemyError
@@ -50,13 +51,13 @@ engine_mysql_read = create_engine(
     }
 )
 
-engine_postgres_read = create_engine(
+engine_postgres_read_access = create_engine(
     postgres_url_builder(
         username=settings.DB_POSTGRES_READ_USERNAME,
         password=settings.DB_POSTGRES_READ_PASSWORD,
         host=settings.DB_POSTGRES_READ_HOST,
         port=settings.DB_POSTGRES_READ_PORT,
-        database=settings.DB_POSTGRES_READ_DATABASE
+        database=settings.DB_POSTGRES_READ_DATABASE_ACCESS
     ),
     pool_timeout=60,
     pool_size=5,
@@ -65,13 +66,13 @@ engine_postgres_read = create_engine(
     pool_pre_ping=True
 )
 
-engine_postgres_write = create_engine(
+engine_postgres_write_access = create_engine(
     postgres_url_builder(
         username=settings.DB_POSTGRES_WRITE_USERNAME,
         password=settings.DB_POSTGRES_WRITE_PASSWORD,
         host=settings.DB_POSTGRES_WRITE_HOST,
         port=settings.DB_POSTGRES_WRITE_PORT,
-        database=settings.DB_POSTGRES_WRITE_DATABASE
+        database=settings.DB_POSTGRES_READ_DATABASE_ACCESS
     ),
     pool_timeout=60,
     pool_size=5,
@@ -83,8 +84,8 @@ engine_postgres_write = create_engine(
 SessionLocalWrite = sessionmaker(autocommit=False, autoflush=False, bind=engine_mysql_write)
 SessionLocalRead = sessionmaker(autocommit=False, autoflush=False, bind=engine_mysql_read)
 
-PostgresSessionLocalWrite = sessionmaker(autocommit=False, autoflush=False, bind=engine_postgres_write)
-PostgresSessionLocalRead = sessionmaker(autocommit=False, autoflush=False, bind=engine_postgres_read)
+PostgresSessionLocalWriteAccess = sessionmaker(autocommit=False, autoflush=False, bind=engine_postgres_write_access)
+PostgresSessionLocalReadAccess = sessionmaker(autocommit=False, autoflush=False, bind=engine_postgres_read_access)
 
 Base = declarative_base()
 
@@ -93,8 +94,8 @@ def get_db_mysql_write():
     try:
         yield db
     except SQLAlchemyError as e:
-        logger.error(f"Error connecting to the write mysql database: {e}")
-        raise
+        logger.error(f"Error connecting to the MySQL write database: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")  # Adjust this based on your needs
     finally:
         db.close()
 
@@ -103,27 +104,27 @@ def get_db_mysql_read():
     try:
         yield db
     except SQLAlchemyError as e:
-        logger.error(f"Error connecting to the read mysql database: {e}")
-        raise
+        logger.error(f"Error connecting to the MySQL read database: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
     finally:
         db.close()
 
 def get_db_postgres_read():
-    db = PostgresSessionLocalRead()
+    db = PostgresSessionLocalReadAccess()
     try:
         yield db
     except SQLAlchemyError as e:
-        logger.error(f"Error connecting to the read postgres database: {e}")
-        raise
+        logger.error(f"Error connecting to the PostgreSQL read database: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
     finally:
         db.close()
 
 def get_db_postgres_write():
-    db = PostgresSessionLocalWrite()
+    db = PostgresSessionLocalWriteAccess()
     try:
         yield db
     except SQLAlchemyError as e:
-        logger.error(f"Error connecting to the write postgres database: {e}")
-        raise
+        logger.error(f"Error connecting to the PostgreSQL write database: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
     finally:
         db.close()

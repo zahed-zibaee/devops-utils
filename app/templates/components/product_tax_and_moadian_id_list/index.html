@@ -54,21 +54,75 @@
     data-side-pagination="server"
     data-ajax="ajaxRequestProductTaxMoadian"
   >
-    <thead>
-      <tr>
-        <th data-field="id">ID</th>
-        <th data-field="name">Name</th>
-        <th data-field="tax_rate">Tax Rate</th>
-        <th data-field="moadian_product_id">Moadian Product ID</th>
-        <th data-field="state">State</th>
-      </tr>
-    </thead>
+  <thead>
+    <tr>
+      <th data-field="id">ID</th>
+      <th data-field="name">Name</th>
+      <th data-field="tax_rate">Tax Rate</th>
+      <th data-field="moadian_product_id">Moadian Product ID</th>
+      <th data-field="state">State</th>
+      <th data-field="actions">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- Example Rows -->
+    <tr>
+      <td>1</td>
+      <td>Product A</td>
+      <td>10%</td>
+      <td>12345</td>
+      <td>Active</td>
+      <td>
+        <button class="btn btn-sm btn-primary edit-btn" data-bs-toggle="modal" data-bs-target="#editModal">
+          Edit
+        </button>
+      </td>
+    </tr>
+  </tbody>
   </table>
 </div>
+
+<!-- Modal -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editModalLabel">Edit Product Tax Rate And Moadian Product ID</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="editProduct">
+          <div class="mb-3">
+            <label for="editID" class="form-label">ID</label>
+            <input type="text" class="form-control " id="editID" readonly disabled/>
+          </div>
+          <div class="mb-3">
+            <label for="editName" class="form-label">Name</label>
+            <input type="text" class="form-control " id="editName" readonly disabled/>
+          </div>
+          <div class="mb-3">
+            <label for="editTaxRate" class="form-label">Tax Rate</label>
+            <input type="text" class="form-control" id="editTaxRate" />
+          </div>
+          <div class="mb-3">
+            <label for="editMoadianProductId" class="form-label">Moadian Product ID</label>
+            <input type="text" class="form-control" id="editMoadianProductId" />
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="saveChanges" data-bs-dismiss="modal">Save Changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
   var $table = $("#table");
   const csvFile = document.getElementById("csv-file");
   const exportButton = document.getElementById("export-button");
+  const saveButton = document.getElementById("saveChanges");
   function initTable() {
     $table.bootstrapTable("destroy").bootstrapTable({
       height: 600,
@@ -85,7 +139,7 @@
       console.log("Hostname received from the parent: " + hostname);
       token = event.data.token;
       $table.bootstrapTable("refresh");
-      $("#loadOverlay").prop("style", "display: none;");
+      finishedProgress();
       console.log("Message received from the parent: " + event.data);
     }
   });
@@ -94,6 +148,27 @@
   });
   exportButton.addEventListener("click", () => {
     exportProductTaxAndMoadian();
+  });
+  saveButton.addEventListener("click", () => {
+    ajaxEditProductTaxAndMoadian(document.getElementById("editID").value);
+  });
+  $(document).on("click", ".open-modal-edit-btn", function () {
+    var rowId = $(this).data("id");
+    var rowData = $("#table").bootstrapTable("getData").find((row) => row.id === rowId);
+
+    if (rowData) {
+      document.getElementById("editID").value = rowData.id;
+      document.getElementById("editName").value = rowData.name;
+      if (rowData.tax_rate == "Not Defined") {
+        document.getElementById("editTaxRate").value = "";
+      } else {
+        document.getElementById("editTaxRate").value = rowData.tax_rate;
+      }
+      document.getElementById("editMoadianProductId").value = rowData.moadian_product_id;
+
+      const modal = new bootstrap.Modal(document.getElementById("editModal"));
+      modal.show();
+    }
   });
 </script>
 {% endblock %}
