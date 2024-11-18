@@ -5,6 +5,7 @@
 </div>
 <div class="">
   <ul class="nav nav-tabs" id="myTab" role="tablist">
+    {% if disabled_feature.get('order_lock') %}
     <li class="nav-item" role="presentation">
       <button
         class="nav-link active"
@@ -19,6 +20,8 @@
         Order
       </button>
     </li>
+    {% endif %}
+    {% if disabled_feature.get('aggregation') %}
     <li class="nav-item" role="presentation">
       <button
         class="nav-link"
@@ -33,6 +36,8 @@
         Aggregation
       </button>
     </li>
+    {% endif %}
+    {% if disabled_feature.get('access_management') %}
     <li class="nav-item" role="presentation">
       <button
         class="nav-link"
@@ -47,6 +52,8 @@
         Permissions
       </button>
     </li>
+    {% endif %}
+    {% if disabled_feature.get('access_management') %}
     <li class="nav-item" role="presentation">
       <button
         class="nav-link"
@@ -61,6 +68,7 @@
         Access Rules
       </button>
     </li>
+    {% endif %}
   </ul>
   <div class="tab-content mb-3 mt-4" id="myTabContent">
     <div

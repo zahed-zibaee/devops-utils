@@ -13,9 +13,9 @@ def get_active_features():
         features.append(components_routes)
     if feature_status('component'):
         features.append(component)
-    if feature_status('kubernetes'):
+    if feature_status('aggregation'):
         features.append(job_sync_aggregation_schema)
-        features.append(job_sync_access)
     if feature_status('access_management'):
         features.append(access_management)
+        features.append(job_sync_access)
     return features

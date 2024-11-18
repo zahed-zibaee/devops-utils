@@ -11,11 +11,11 @@ async def get_tools():
     if feature_status('product_tax_moadian'):
         tools.append({
             "name": "مالیات و کد کالا",
-            "url": "tax_and_moadian"
+            "url": "tax_and_moadian",
         })
     if feature_status('app_settings'):
         tools.append({
             "name": "تنظيمات برنامه",
-            "url": "app_settings"
+            "url": "app_settings",
         })
     return tools
