@@ -320,15 +320,20 @@ function ajaxRequestProductTaxMoadian(params) {
     headers: { Authorization: token },
     statusCode: {
       200: function (res) {
-        res.rows = res.rows.map((row) => {
-          const id = typeof row.id === "string" ? row.id : String(row.id);
-          const normalizedId = id.replace(/<[^>]*>/g, "");
-          row.actions = `
-            <button class="btn btn-sm btn-primary open-modal-edit-btn" data-id="${normalizedId}">
-              Edit
-            </button>`;
-          return row;
-        });
+        if (Array.isArray(res.rows)) {
+          res.rows = res.rows.map((row) => {
+            const id = typeof row.id === "string" ? row.id : String(row.id || "");
+            const normalizedId = id.replace(/<[^>]*>/g, ""); 
+
+            row.actions = `
+              <button class="btn btn-sm btn-primary open-modal-edit-btn" data-id="${normalizedId}">
+                Edit
+              </button>`;
+            return row;
+          });
+        } else {
+          console.error("Response rows are missing or not an array");
+        }
 
         params.success(res);
       },
