@@ -321,8 +321,9 @@ function ajaxRequestProductTaxMoadian(params) {
     statusCode: {
       200: function (res) {
         res.rows = res.rows.map((row) => {
+          const normalizedId = row.id.replace(/<[^>]*>/g, "");
           row.actions = `
-            <button class="btn btn-sm btn-primary open-modal-edit-btn" data-id="${row.id}">
+            <button class="btn btn-sm btn-primary open-modal-edit-btn" data-id="${normalizedId}">
               Edit
             </button>`;
           return row;
