@@ -322,11 +322,9 @@ function ajaxRequestProductTaxMoadian(params) {
       200: function (res) {
         if (Array.isArray(res.rows)) {
           res.rows = res.rows.map((row) => {
-            const id = typeof row.id === "string" ? row.id : String(row.id || "");
-            const normalizedId = id.replace(/<[^>]*>/g, ""); 
 
             row.actions = `
-              <button class="btn btn-sm btn-primary open-modal-edit-btn" data-id="${normalizedId}">
+              <button class="btn btn-sm btn-primary open-modal-edit-btn" data-id="${row.id}">
                 Edit
               </button>`;
             return row;
