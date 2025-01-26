@@ -23,13 +23,15 @@ class Settings(BaseSettings):
     DB_MYSQL_READ_PASSWORD: str = ''   
     # PostgreSQL write config
     DB_POSTGRES_WRITE_HOST: str = '127.0.0.1'
-    DB_POSTGRES_WRITE_DATABASE_ACCESS: str = 'mydatabase'
+    DB_POSTGRES_WRITE_DATABASE_ACCESS: str = 'accssmngmnt'
+    DB_POSTGRES_WRITE_DATABASE_LEGACY: str = 'legacy'
     DB_POSTGRES_WRITE_USERNAME: str = 'postgres'
     DB_POSTGRES_WRITE_PORT: str = '5432'
     DB_POSTGRES_WRITE_PASSWORD: str = ''
     # PostgreSQL write config
     DB_POSTGRES_READ_HOST: str = '127.0.0.1'
-    DB_POSTGRES_READ_DATABASE_ACCESS: str = 'mydatabase'
+    DB_POSTGRES_READ_DATABASE_ACCESS: str = 'accssmngmnt'
+    DB_POSTGRES_READ_DATABASE_LEGACY: str = 'legacy'
     DB_POSTGRES_READ_USERNAME: str = 'postgres'
     DB_POSTGRES_READ_PORT: str = '5432'
     DB_POSTGRES_READ_PASSWORD: str = ''

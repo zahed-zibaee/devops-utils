@@ -6,7 +6,7 @@ from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import String
 
-from app.core.db import get_db_postgres_read, get_db_postgres_write
+from app.core.db import get_db_postgres_access_read, get_db_postgres_access_write
 from app.schemas.main import Access, Permissions, PermissionsBase, PermissionsUpdate, AccessBase, AccessUpdate, PermissionLabels
 
 router = APIRouter()
@@ -14,7 +14,7 @@ router = APIRouter()
 
 @router.get("/devops-tools/v1/access/endpoint/list", response_model=Page[AccessUpdate])
 async def list_access(
-    db: AsyncSession = Depends(get_db_postgres_read),
+    db: AsyncSession = Depends(get_db_postgres_access_read),
     search: str = Query(None, description="Search term to filter access by slug or path")
     ):
 
@@ -32,7 +32,7 @@ async def list_access(
 add_pagination(router)
 
 @router.post("/devops-tools/v1/access/endpoint/create", response_model=AccessBase)
-async def create_access_rule(access: AccessBase, db: AsyncSession = Depends(get_db_postgres_write)):
+async def create_access_rule(access: AccessBase, db: AsyncSession = Depends(get_db_postgres_access_write)):
     new_access_rule = Access(
         slug=access.slug,
         path=access.path,
@@ -53,7 +53,7 @@ async def create_access_rule(access: AccessBase, db: AsyncSession = Depends(get_
     return new_access_rule
 
 @router.put("/devops-tools/v1/access/endpoint/update/{rule_id}", response_model=AccessBase)
-async def update_item(rule_id: int, rule_update: AccessUpdate, db: AsyncSession = Depends(get_db_postgres_write)):
+async def update_item(rule_id: int, rule_update: AccessUpdate, db: AsyncSession = Depends(get_db_postgres_access_write)):
 
     result = db.execute(select(Access).where(Access.id == rule_id))
     rule = result.scalars().first()
@@ -75,7 +75,7 @@ async def update_item(rule_id: int, rule_update: AccessUpdate, db: AsyncSession 
     return rule
 
 @router.delete("/devops-tools/v1/access/endpoint/{rule_id}", response_model=AccessBase)
-async def delete_item(rule_id: int, db: AsyncSession = Depends(get_db_postgres_write)):
+async def delete_item(rule_id: int, db: AsyncSession = Depends(get_db_postgres_access_write)):
     result = db.execute(select(Access).where(Access.id == rule_id))
     rule = result.scalars().first()
 
@@ -91,7 +91,7 @@ async def delete_item(rule_id: int, db: AsyncSession = Depends(get_db_postgres_w
 
 @router.get("/devops-tools/v1/access/permissions/list", response_model=Page[PermissionsUpdate])
 async def list_permissions(
-    db: AsyncSession = Depends(get_db_postgres_read),
+    db: AsyncSession = Depends(get_db_postgres_access_read),
     search: str = Query(None, description="Search term to filter access by slug or path")
     ):
 
@@ -109,7 +109,7 @@ async def list_permissions(
 add_pagination(router)
 
 @router.post("/devops-tools/v1/access/permissions/create", response_model=PermissionsBase)
-async def create_permission(permission: PermissionsBase, db: AsyncSession = Depends(get_db_postgres_write)):
+async def create_permission(permission: PermissionsBase, db: AsyncSession = Depends(get_db_postgres_access_write)):
     new_permission = Permissions(
         slug=permission.slug,
         label=permission.label
@@ -127,7 +127,7 @@ async def create_permission(permission: PermissionsBase, db: AsyncSession = Depe
     return new_permission
 
 @router.put("/devops-tools/v1/access/permissions/update/{permission_id}", response_model=PermissionsBase)
-async def update_permission(permission_id: int, permission_update:PermissionsUpdate , db: AsyncSession = Depends(get_db_postgres_write)):
+async def update_permission(permission_id: int, permission_update:PermissionsUpdate , db: AsyncSession = Depends(get_db_postgres_access_write)):
 
     result = db.execute(select(Permissions).where(Permissions.id == permission_id))
     permission = result.scalars().first()
@@ -146,7 +146,7 @@ async def update_permission(permission_id: int, permission_update:PermissionsUpd
     return permission
 
 @router.delete("/devops-tools/v1/access/permissions/{permission_id}", response_model=PermissionsBase)
-async def delete_item(permission_id: int, db: AsyncSession = Depends(get_db_postgres_write)):
+async def delete_item(permission_id: int, db: AsyncSession = Depends(get_db_postgres_access_write)):
     result = db.execute(select(Permissions).where(Permissions.id == permission_id))
     permission = result.scalars().first()
 
@@ -159,7 +159,7 @@ async def delete_item(permission_id: int, db: AsyncSession = Depends(get_db_post
     return permission
 
 @router.get("/devops-tools/v1/access/permissions/{permission_id}", response_model=str)
-async def get_permission_label(permission_id: int, db: AsyncSession = Depends(get_db_postgres_read)):
+async def get_permission_label(permission_id: int, db: AsyncSession = Depends(get_db_postgres_access_read)):
     result = db.execute(select(Permissions).where(Permissions.id == permission_id))
     permission = result.scalars().first()
 

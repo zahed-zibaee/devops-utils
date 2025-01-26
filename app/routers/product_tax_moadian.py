@@ -13,7 +13,7 @@ import json
 
 from app.schemas.main import GetProducts, Product, ProductUpdate, ProductUpdateResponse
 from app.core.logging import logger
-from app.core.db import get_db_mysql_write, get_db_mysql_read
+from app.core.db import get_db_postgres_legacy_read, get_db_postgres_legacy_write
 from app.core.redis import lock, unlock, is_locked, set_cache, get_cache
 
 
@@ -22,7 +22,7 @@ router = APIRouter()
 @router.get("/devops-tools/v1/products/tax_and_moadian/list")
 async def get_products(
     params: GetProducts = Depends(),
-    db: Session = Depends(get_db_mysql_read)
+    db: Session = Depends(get_db_postgres_legacy_read)
     ):
     """
     Retrieves a list of products from the database with optional filtering by product ID.
@@ -67,7 +67,7 @@ async def get_products(
 
 @router.get("/devops-tools/v1/products/tax_and_moadian/export_csv")
 async def get_products(
-    db: Session = Depends(get_db_mysql_read)
+    db: Session = Depends(get_db_postgres_legacy_read)
     ):
     """
     Exports a list of products from the database to a CSV file.
@@ -290,8 +290,8 @@ async def update_products(
     background_tasks: BackgroundTasks,
     task_id: int,
     file: UploadFile = File(...), 
-    db_write: Session = Depends(get_db_mysql_write),
-    db_read: Session = Depends(get_db_mysql_read)
+    db_write: Session = Depends(get_db_postgres_legacy_write),
+    db_read: Session = Depends(get_db_postgres_legacy_read)
     ):
     """
     Uploads a CSV file and updates data in the 'products' table based on 'id'.
@@ -353,7 +353,7 @@ async def update_products_status(task_id: int):
 @router.put("/devops-tools/v1/products/tax_and_moadian/{product_id}")
 async def update_product(product_id: int, 
                       product_data: ProductUpdate,
-                      db_write: Session = Depends(get_db_mysql_write)
+                      db_write: Session = Depends(get_db_postgres_legacy_write)
                       ) -> ProductUpdateResponse:
 
     try:
