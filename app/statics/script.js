@@ -364,7 +364,7 @@ function syncAggregationCreate(type) {
   const url = prepend_url(
     "/devops-tools/v1/kubernetes/jobs/aggregation/create"
   );
-  if (confirm('Are you sure you want to delete this item?')) {
+  if (confirm('Are you sure you want to sync this table?')) {
   fetch(url, {
     method: "POST",
     headers: {
@@ -392,7 +392,7 @@ function syncAccess() {
   const url = prepend_url(
     "/devops-tools/v1/kubernetes/jobs/access/create"
   );
-  if (confirm('Are you sure you want to delete this item?')) {
+  if (confirm('Are you sure you want to sync this table?')) {
     fetch(url, {
       method: "POST",
       headers: {
