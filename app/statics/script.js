@@ -364,6 +364,7 @@ function syncAggregationCreate(type) {
   const url = prepend_url(
     "/devops-tools/v1/kubernetes/jobs/aggregation/create"
   );
+  if (confirm('Are you sure you want to delete this item?')) {
   fetch(url, {
     method: "POST",
     headers: {
@@ -384,31 +385,34 @@ function syncAggregationCreate(type) {
     .catch((error) => {
       console.error("Error:", error);
     });
+  }
 }
 
 function syncAccess() {
   const url = prepend_url(
     "/devops-tools/v1/kubernetes/jobs/access/create"
   );
-  fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: token,
-    },
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.Status === "Created") {
-        createOrUpdateToastTask("active", data.Job);
-        checkJobStatus("/devops-tools/v1/kubernetes/jobs/access/status", data.Job);
-      } else {
-        console.error("Job creation failed:", data);
-      }
+  if (confirm('Are you sure you want to delete this item?')) {
+    fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: token,
+      },
     })
-    .catch((error) => {
-      console.error("Error:", error);
-    });
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.Status === "Created") {
+          createOrUpdateToastTask("active", data.Job);
+          checkJobStatus("/devops-tools/v1/kubernetes/jobs/access/status", data.Job);
+        } else {
+          console.error("Job creation failed:", data);
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+  }
 }
 
 function checkJobStatus(endpoint, jobName) {
@@ -644,3 +648,69 @@ function fetchAllPermissions(permissionSelect) {
       }
   });
 }
+
+function domLoaded() {
+  const permissionSelect = new Choices('#editPermissionIdsAccessTable', {
+      removeItemButton: true,
+      searchEnabled: true,
+      placeholderValue: 'Select permissions',
+      noResultsText: 'No permissions found',
+      noChoicesText: 'No more permissions to load',
+  });
+
+  fetchAllPermissions(permissionSelect);
+
+  const searchInput = document.querySelector('.choices__input--cloned');
+  searchInput.addEventListener('input', function (event) {
+      const searchTerm = event.target.value.toLowerCase();
+      const filteredChoices = permissionSelect.getChoices().filter(choice => {
+          return choice.label.toLowerCase().includes(searchTerm);
+      });
+
+      permissionSelect.clearChoices();
+      permissionSelect.setChoices(filteredChoices, 'value', 'label', true);
+  });
+
+  document.getElementById('saveChangesButtonAccessTable').addEventListener('click', function () {
+
+    const mode = this.dataset.mode;
+    const ruleId = document.getElementById('editIdAccessTable').value || null;
+    const slug = document.getElementById('editSlugAccessTable').value;
+    const path = document.getElementById('editPathAccessTable').value;
+    const permissionIds = permissionSelect.getValue(true)
+    const method = document.getElementById('editMethodAccessTable').value;
+    const isPublic = document.getElementById('editPublicAccessTable').checked;
+    create_url = prepend_url('/devops-tools/v1/access/endpoint/create')
+    update_url = prepend_url(`/devops-tools/v1/access/endpoint/update/${ruleId}`)
+
+    const url = mode === 'create' ? create_url : update_url;
+    const methodType = mode === 'create' ? 'POST' : 'PUT';
+
+    $.ajax({
+        url: url,
+        type: methodType,
+        headers: {
+            'accept': 'application/json',
+            'Content-Type': 'application/json',
+            Authorization: token,
+        },
+        data: JSON.stringify({
+            id: ruleId,
+            slug: slug,
+            path: path,
+            method: method,
+            permission_ids: permissionIds,
+            public: isPublic
+        }),
+        success: function(response) {
+            const action = mode === 'create' ? 'created' : 'updated';
+            alert(`Access rule ${action} successfully!`);
+            $('#accessListTable').bootstrapTable('refresh');
+            $('#editModalAccessTable').modal('hide');
+        },
+        error: function() {
+            alert(`Error ${mode === 'create' ? 'creating' : 'updating'} access rule.`);
+        }
+    });
+});
+};
