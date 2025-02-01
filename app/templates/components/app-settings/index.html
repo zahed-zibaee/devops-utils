@@ -351,6 +351,7 @@
   const syncAccessButtonEndpoints = document.getElementById("access-sync-button-endpoint");
   const syncAccessButtonPermissions = document.getElementById("access-sync-button-permission");
   var lastOrderLock = -1;
+  $("#loadOverlay").prop("style", "display: none;");
   window.addEventListener("message", function (event) {
     if (!!event.data && !!event.data.hostname && !!event.data.token) {
       hostname = event.data.hostname;
