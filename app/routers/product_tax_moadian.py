@@ -246,7 +246,7 @@ def import_csv_product_tax_and_moadian(
             set_cache("product", f"import_tax_and_moadian_csv_{task_id}", json.dumps({"status": "pending"}), 600)
             logger.info(f"Changing PRODUCT_TAX_AND_MOARDIAN_IMPORT_CSV lock to {is_locked('PRODUCT_TAX_AND_MOARDIAN_IMPORT_CSV')}")
             
-            db_write.execute(text(f"UPDATE {Product().get_table_name()} SET tax_rate = Null, moadian_product_id= \"\";"))
+            db_write.execute(text(f"UPDATE {Product().get_table_name()} SET tax_rate = Null, moadian_product_id= \'\';"))
 
             all_updated_products = []
             for chunk in csv_dic_chunks:
