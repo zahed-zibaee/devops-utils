@@ -18,4 +18,9 @@ async def get_tools():
             "name": "تنظيمات برنامه",
             "url": "app_settings",
         })
+    if feature_status('monitoring'):
+        tools.append({
+            "name": "نظارت",
+            "url": "monitor",
+        })
     return tools

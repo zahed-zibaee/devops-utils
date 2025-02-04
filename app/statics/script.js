@@ -459,6 +459,18 @@ function checkJobStatus(endpoint, jobName) {
     });
 }
 
+function formatTimestamp(timestamp) {
+  const date = new Date(timestamp * 1000);
+  return date.toLocaleTimeString();
+}
+
+function getRandomLightColor() {
+  const r = Math.floor(Math.random() * 156) + 100;
+  const g = Math.floor(Math.random() * 156) + 100; 
+  const b = Math.floor(Math.random() * 156) + 100;
+  return `rgba(${r}, ${g}, ${b}, 1)`;
+}
+
 function getCurrentDateTime() {
     const now = new Date();
     const year = now.getFullYear();
@@ -470,6 +482,38 @@ function getCurrentDateTime() {
 
     return formattedDateTime;
 }
+
+function getMonitorBoolMetrics(endpoint) {
+  inProgress();
+  $.ajax({
+    url: '/devops-tools/v1/monitor/bool/' + endpoint,
+    method: 'GET',
+    success: function(data) {
+        $('#' + endpoint).empty();
+        for (var key in data) {
+            if (data.hasOwnProperty(key)) {
+              var value = data[key];
+              var colorClass = value ? 'btn-success' : 'btn-danger'; 
+              var buttonHtml = `
+                  <div class="col-4 mb-3">
+                    <div class="row mx-2">
+                      <button class="btn btn-lg ${colorClass} col-12">${key}</button>
+                    </div>
+                  </div>
+                  
+              `;
+              $('#' + endpoint).append(buttonHtml);
+            }
+        }
+    },
+    error: function (jqXHR, status, error) {
+      handleErrors(jqXHR.status, jqXHR.responseJSON);
+    },
+    complete: function () {
+      finishedProgress();
+    }
+  });
+};
 
 function uploadProductTaxAndMoadian() {
   inProgress();

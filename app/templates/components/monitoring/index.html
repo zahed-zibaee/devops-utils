@@ -1,0 +1,116 @@
+{% extends "base/base.html" %} {% block content %}
+<div class="starter-template my-3">
+  <h1>{{ title }}</h1>
+  <p class="lead mb-4">{{ description }}</p>
+</div>
+<div class="">
+  <ul class="nav nav-tabs" id="myTab" role="tablist">
+    {% if disabled_feature.get('kafka_lag_consumer_group') %}
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link active"
+        id="syncLagTab"
+        data-bs-toggle="tab"
+        data-bs-target="#syncLag"
+        type="button"
+        role="tab"
+        aria-controls="syncLag"
+        aria-selected="true"
+      >
+      Aggregation Sync Lag
+      </button>
+    </li>
+    {% endif %}
+    {% if disabled_feature.get('kafka_lag_consumer_group') %}
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link"
+        id="connectorSinkStatusTab"
+        data-bs-toggle="tab"
+        data-bs-target="#connectorSinkStatus"
+        type="button"
+        role="tab"
+        aria-controls="connectorSinkStatus"
+        aria-selected="false"
+      >
+      Sink Connector Statuses
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link"
+        id="connectorSourceStatusTab"
+        data-bs-toggle="tab"
+        data-bs-target="#connectorSourceStatus"
+        type="button"
+        role="tab"
+        aria-controls="connectorSourceStatus"
+        aria-selected="false"
+      >
+      Source Connector Statuses
+      </button>
+    </li>
+    {% endif %}
+  </ul>
+  {% if disabled_feature.get('kafka_lag_consumer_group') %}
+  <div class="tab-content mb-1 mt-4" id="myTabContent">
+    <div
+      class="tab-pane fade show active"
+      style="height: 60vh;"
+      id="syncLag"
+      role="tabpanel"
+      aria-labelledby="syncLagTab"
+    >
+      <div class="row" id="kafka_connectors_lag">
+      </div>
+    </div>
+    {% endif %}
+    {% if disabled_feature.get('kafka_lag_consumer_group') %}
+    <div
+      class="tab-pane fade"
+      style="height: 90vh;"
+      id="connectorSinkStatus"
+      role="tabpanel"
+      aria-labelledby="connectorSinkStatusTab"
+    >
+      <div class="row" id="debezium_connector_status_running_ratio_sink">
+      </div>
+    </div>
+    <div
+    class="tab-pane fade"
+    style="height: 90vh;"
+    id="connectorSourceStatus"
+    role="tabpanel"
+    aria-labelledby="connectorSourceStatusTab"
+    >
+      <div class="row" id="debezium_connector_status_running_ratio_source">
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+  window.addEventListener("message", function (event) {
+    if (!!event.data && !!event.data.hostname && !!event.data.token) {
+      hostname = event.data.hostname;
+      console.log("Hostname received from the parent: " + hostname);
+      token = event.data.token;
+      setInterval(function() {
+        getMonitorBoolMetrics('kafka_connectors_lag');
+      }, 15000); 
+      setInterval(function() {
+        getMonitorBoolMetrics('debezium_connector_status_running_ratio_sink');
+      }, 15000); 
+      setInterval(function() {
+        getMonitorBoolMetrics('debezium_connector_status_running_ratio_source');
+      }, 15000); 
+      getMonitorBoolMetrics('kafka_connectors_lag');
+      getMonitorBoolMetrics('debezium_connector_status_running_ratio_sink');
+      getMonitorBoolMetrics('debezium_connector_status_running_ratio_source');
+      finishedProgress();
+      console.log("Message received from the parent: " + event.data);
+    }
+  });
+</script>
+{% endblock %}

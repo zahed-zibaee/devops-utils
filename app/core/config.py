@@ -84,6 +84,9 @@ class Settings(BaseSettings):
     JOB_MEMORY_LIMIT: str = '200Mi'
     # Hash
     GIT_HASH: str = get_git_head()
-    
+    # Grafana api key
+    GRAFANA_API_KEY: str = ""
+    GRAFANA_URL: str = "https://grafana.snapp.supply"
+    GRAFANA_PROMETHEUS_DATABASE_ID: str = "1"
 
 settings = Settings()

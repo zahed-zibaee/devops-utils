@@ -33,3 +33,15 @@ async def get_app_settings_component(request: Request):
             "access_management": feature_status('access_management'),
         },
         })
+
+@router.get("/devops-tools-front/v1/component/monitor")
+async def get_monitoring_component(request: Request):
+    return templates.TemplateResponse("components/monitoring/index.html", {
+        "request": request, 
+        "title": "Monitoring", 
+        "hash": settings.GIT_HASH,
+        "description": "Monitor Service Statuses",
+        "disabled_feature": {
+            "kafka_lag_consumer_group": feature_status('kafka_lag_consumer_group'),
+        },
+        })
