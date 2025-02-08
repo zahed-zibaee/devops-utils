@@ -15,8 +15,8 @@ def grafana_query(
         query,
         datasource_id = settings.GRAFANA_PROMETHEUS_DATABASE_ID,
         start = int((datetime.now() - timedelta(minutes=10)).timestamp()), 
-        end = int(datetime.now().timestamp()), 
-        step = 60
+        end = int((datetime.now() - timedelta(minutes=1)).timestamp()), 
+        step = 30
     ):
     params = {
         'query': query,
@@ -32,6 +32,7 @@ def grafana_query(
     if not response.ok \
         or not response.headers.get('Content-Type').startswith('application/json') \
         or response.json()['status'] != "success":
+        logging.error("Grafana Request failed with status code: {}, error: {}".format(response.status_code, response.text))
         raise RuntimeError("Grafana Request failed with status code: {}".format(response.status_code))
     res = []
     for i in response.json()['data']['result']:
@@ -43,7 +44,7 @@ def grafana_query(
 def grafana_query_instant(
         query,
         datasource_id = settings.GRAFANA_PROMETHEUS_DATABASE_ID,
-        time=int(datetime.now().timestamp())
+        time=int((datetime.now() - timedelta(minutes=1)).timestamp())
     ):
     params = {
         'query': query,  
@@ -57,6 +58,7 @@ def grafana_query_instant(
     if not response.ok \
         or not response.headers.get('Content-Type').startswith('application/json') \
         or response.json()['status'] != "success":
+        logging.error("Grafana Request failed with status code: {}, error: {}".format(response.status_code, response.text))
         raise RuntimeError("Grafana Request failed with status code: {}".format(response.status_code))
     res = []
     for i in response.json()['data']['result']:

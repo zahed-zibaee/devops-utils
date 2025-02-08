@@ -1,5 +1,5 @@
 from re import sub
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from app.core.grafana import grafana_query, grafana_query_instant
 from datetime import datetime, timedelta
 
@@ -10,8 +10,14 @@ router = APIRouter()
 async def debezium_connector_status_running_ratio_sink():
     prometheus_query = 'min(debezium_kafka_connect_connector_task_status_metrics_running_ratio{connector=~".*-sink-connector"}) by (connector)'
     
+    
+    try:
+        metrics = grafana_query_instant(prometheus_query)
+    except Exception as e:
+        return HTTPException(f'{e}')
+    
     res = {}
-    for metric in grafana_query_instant(prometheus_query):
+    for metric in metrics:
         connector = metric['labels']['connector']
         db_name = connector_to_db_name(connector)
         value = metric['value']
@@ -22,8 +28,13 @@ async def debezium_connector_status_running_ratio_sink():
 async def debezium_connector_status_running_ratio_source():
     prometheus_query = 'min(debezium_kafka_connect_connector_task_status_metrics_running_ratio{connector=~".*-source-connector"}) by (connector)'
     
+    try:
+        metrics = grafana_query_instant(prometheus_query)
+    except Exception as e:
+        return HTTPException(f'{e}')
+    
     res = {}
-    for metric in grafana_query_instant(prometheus_query):
+    for metric in metrics:
         connector = metric['labels']['connector']
         db_name = connector_to_db_name(connector)
         value = metric['value']
@@ -41,11 +52,14 @@ async def kafka_connectors_lag():
             if numbers[i] <= 0:  
                 return False
         return True 
-    
-    metrics = grafana_query(
+
+    try:
+        metrics = grafana_query(
             prometheus_query, 
             start = int((datetime.now() - timedelta(minutes=30)).timestamp())
         )
+    except Exception as e:
+        return HTTPException(f'{e}')
     
     res = {}
     for metric in metrics:
