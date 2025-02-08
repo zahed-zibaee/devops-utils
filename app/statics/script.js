@@ -488,6 +488,9 @@ function getMonitorBoolMetrics(endpoint) {
   $.ajax({
     url: prepend_url('/devops-tools/v1/monitor/bool/') + endpoint,
     method: 'GET',
+    headers: {
+      Authorization: token,
+    },
     success: function(data, textStatus, jqXHR) {
       var contentType = jqXHR.getResponseHeader('Content-Type');
       if (contentType && contentType.includes('application/json')) {
