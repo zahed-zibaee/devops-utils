@@ -486,7 +486,7 @@ function getCurrentDateTime() {
 function getMonitorBoolMetrics(endpoint) {
   inProgress();
   $.ajax({
-    url: '/devops-tools/v1/monitor/bool/' + endpoint,
+    url: prepend_url('/devops-tools/v1/monitor/bool/') + endpoint,
     method: 'GET',
     success: function(data, textStatus, jqXHR) {
       var contentType = jqXHR.getResponseHeader('Content-Type');
