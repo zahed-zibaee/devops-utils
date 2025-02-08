@@ -489,22 +489,26 @@ function getMonitorBoolMetrics(endpoint) {
     url: '/devops-tools/v1/monitor/bool/' + endpoint,
     method: 'GET',
     success: function(data) {
+      var contentType = jqXHR.getResponseHeader('Content-Type');
+      if (contentType && contentType.includes('application/json')) {
         $('#' + endpoint).empty();
         for (var key in data) {
-            if (data.hasOwnProperty(key)) {
-              var value = data[key];
-              var colorClass = value ? 'btn-success' : 'btn-danger'; 
-              var buttonHtml = `
-                  <div class="col-4 mb-3">
-                    <div class="row mx-2">
-                      <button class="btn btn-lg ${colorClass} col-12">${key}</button>
-                    </div>
-                  </div>
-                  
-              `;
-              $('#' + endpoint).append(buttonHtml);
-            }
+          if (data.hasOwnProperty(key)) {
+            var value = data[key];
+            var colorClass = value ? 'btn-success' : 'btn-danger'; 
+            var buttonHtml = `
+              <div class="col-4 mb-3">
+                <div class="row mx-2">
+                  <button class="btn btn-lg ${colorClass} col-12">${key}</button>
+                </div>
+              </div>
+            `;
+            $('#' + endpoint).append(buttonHtml);
+          }
         }
+      } else {
+        handleErrors(406, { message: 'Response is not in JSON format' });
+      }
     },
     error: function (jqXHR, status, error) {
       handleErrors(jqXHR.status, jqXHR.responseJSON);
