@@ -248,5 +248,16 @@
 }
 
 .form-switch .form-check-input {
-  margin-left: -3em;
+  margin-left: -3.5em;
+}
+
+.form-check-input:focus {
+  border-color: #feec86;
+  outline: 0;
+  box-shadow: 0 0 0 .25rem #fded0d5b;
+}
+
+.form-switch .form-check-input:focus {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23feec86'/%3e%3c/svg%3e");
+  
 }
