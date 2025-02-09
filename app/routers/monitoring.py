@@ -43,7 +43,7 @@ async def debezium_connector_status_running_ratio_source():
 
 @router.get("/devops-tools/v1/monitor/bool/kafka_connectors_lag")
 async def kafka_connectors_lag():
-    prometheus_query = 'sum(kafka_consumergroup_lag) by (consumergroup)'
+    prometheus_query = 'sum(kafka_consumergroup_lag) by (consumergroup, topic)'
     
     def is_increasing_or_unchanged(numbers):
         for i in range(1, len(numbers)):
@@ -65,10 +65,9 @@ async def kafka_connectors_lag():
     
     res = {}
     for metric in metrics:
-        connector = metric['labels']['consumergroup']
-        db_name = connector_to_db_name(connector)
+        table = metric['labels']['topic']
         values = [int(i[1]) for i in metric['values']]
-        res[db_name] = False if is_increasing_or_unchanged(values) else True
+        res[table] = False if is_increasing_or_unchanged(values) else True
     
     return res
 
