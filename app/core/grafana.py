@@ -1,8 +1,6 @@
-from fastapi import HTTPException
 from app.core.config import settings
 from app.core.logging import logging
 import requests
-import json
 from datetime import datetime, timedelta
 
 

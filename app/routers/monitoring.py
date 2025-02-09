@@ -56,7 +56,9 @@ async def kafka_connectors_lag():
     try:
         metrics = grafana_query(
             prometheus_query, 
-            start = int((datetime.now() - timedelta(minutes=30)).timestamp())
+            start = int((datetime.now() - timedelta(minutes=20)).timestamp()), 
+            end = int((datetime.now() - timedelta(minutes=1)).timestamp()), 
+            step = 30
         )
     except Exception as e:
         return HTTPException(f'{e}')
