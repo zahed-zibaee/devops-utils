@@ -4,11 +4,29 @@
   <p class="lead mb-4">{{ description }}</p>
 </div>
 <div class="">
+  <form class="row my-3 mx-2">
+    <div class="form-floating input-wrapper col-9 px-0">
+      <select class="form-select form-control" id="intervalInput">
+        <option value="60000">1</option>
+        <option value="120000">2</option>
+        <option value="300000">5</option>
+        <option value="900000">15</option>
+      </select>
+      <label for="intervalInput">Refresh</label>
+      <span class="unit-label">minute(s)</span>
+    </div>
+    <div class="form-check form-switch col-3 align-content-center px-0">
+      <div class="ps-5 ms-3">
+        <input class="form-check-input " type="checkbox" id="toggleSwitch">
+        <label class="form-check-label" for="toggleSwitch">Auto Refresh</label>
+      </div>
+    </div>
+  </form>
   <ul class="nav nav-tabs" id="myTab" role="tablist">
     {% if disabled_feature.get('kafka_lag_consumer_group') %}
     <li class="nav-item" role="presentation">
       <button
-        class="nav-link active"
+        class="nav-link h-100 active"
         id="syncLagTab"
         data-bs-toggle="tab"
         data-bs-target="#syncLag"
@@ -24,7 +42,7 @@
     {% if disabled_feature.get('kafka_lag_consumer_group') %}
     <li class="nav-item" role="presentation">
       <button
-        class="nav-link"
+        class="nav-link h-100"
         id="connectorSinkStatusTab"
         data-bs-toggle="tab"
         data-bs-target="#connectorSinkStatus"
@@ -38,7 +56,7 @@
     </li>
     <li class="nav-item" role="presentation">
       <button
-        class="nav-link"
+        class="nav-link h-100"
         id="connectorSourceStatusTab"
         data-bs-toggle="tab"
         data-bs-target="#connectorSourceStatus"
@@ -96,15 +114,44 @@
       hostname = event.data.hostname;
       console.log("Hostname received from the parent: " + hostname);
       token = event.data.token;
-      setInterval(function() {
-        getMonitorBoolMetrics('kafka_connectors_lag');
-      }, 15000); 
-      setInterval(function() {
-        getMonitorBoolMetrics('debezium_connector_status_running_ratio_sink');
-      }, 15000); 
-      setInterval(function() {
-        getMonitorBoolMetrics('debezium_connector_status_running_ratio_source');
-      }, 15000); 
+      let intervalId = null;
+      let intervalValue = 60000; 
+      function startInterval() {
+          if (intervalId === null) {
+              intervalId = setInterval(() => {
+                  console.log("Refreshing...");
+                  getMonitorBoolMetrics('kafka_connectors_lag');
+                  getMonitorBoolMetrics('debezium_connector_status_running_ratio_sink');
+                  getMonitorBoolMetrics('debezium_connector_status_running_ratio_source');
+              }, intervalValue);
+          }
+      }
+      function stopInterval() {
+          if (intervalId !== null) {
+              clearInterval(intervalId);
+              intervalId = null;
+          }
+      }
+      function updateInterval(newInterval) {
+          intervalValue = newInterval;
+          if (intervalId !== null) {
+              stopInterval();
+              startInterval();
+          }
+      }
+      document.getElementById('toggleSwitch').addEventListener('change', function(event) {
+          if (event.target.checked) {
+              startInterval();
+          } else {
+              stopInterval();
+          }
+      });
+      document.getElementById('intervalInput').addEventListener('input', function(event) {
+          const newInterval = parseInt(event.target.value, 10);
+          if (!isNaN(newInterval) && newInterval > 0) {
+              updateInterval(newInterval);
+          }
+      });
       getMonitorBoolMetrics('kafka_connectors_lag');
       getMonitorBoolMetrics('debezium_connector_status_running_ratio_sink');
       getMonitorBoolMetrics('debezium_connector_status_running_ratio_source');

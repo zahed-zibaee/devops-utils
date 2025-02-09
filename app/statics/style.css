@@ -200,7 +200,7 @@
 
 .unit-label {
   position: absolute;
-  right: 15px;
+  right: 2.5rem;
   top: 50%;
   transform: translateY(-50%);
   pointer-events: none;
@@ -210,11 +210,6 @@
 .form-floating>.form-control:not(:placeholder-shown) {
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
-}
-
-.form-floating>.form-control {
-  height: auto;
-  line-height: unset;
 }
 
 .btn-file {
