@@ -67,7 +67,7 @@ async def kafka_connectors_lag():
     for metric in metrics:
         table = metric['labels']['topic']
         values = [int(i[1]) for i in metric['values']]
-        res[table] = False if is_increasing_or_unchanged(values) else True
+        res[topic_to_table_name(table)] = False if is_increasing_or_unchanged(values) else True
     
     return res
 
@@ -77,3 +77,14 @@ def connector_to_db_name(connector_name):
     connector_striped = sub(r'-jdbc-\w+-connector$', '', connector_lstriped)
     db_name = connector_striped.capitalize()
     return db_name
+
+def topic_to_table_name(topic_name):
+    try:
+        db_table_list = topic_name.split("_",1)
+        db = db_table_list[0]
+        table = db_table_list[1]
+        return f"{db}: {table}"
+    except:
+        return topic_name
+        
+    
