@@ -502,7 +502,7 @@ function getMonitorBoolMetrics(endpoint) {
             var buttonHtml = `
               <div class="col-4 mb-3 px-1">
                 <div class="row mx-1 h-100">
-                  <button class="btn btn-lg ${colorClass} col-12">${key}</button>
+                  <button class="btn btn-lg btn-not-clickable ${colorClass} col-12">${key}</button>
                 </div>
               </div>
             `;

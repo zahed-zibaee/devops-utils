@@ -232,3 +232,21 @@
   cursor: inherit;
   display: block;
 }
+
+.btn-not-clickable {
+  cursor: unset !important;
+}
+
+.form-check-input:checked {
+  background-color: #FFC400;
+  border-color: #FFC400;
+}
+
+.form-check-input {
+  transform: scale(1.5); 
+  margin-left: 10px; 
+}
+
+.form-switch .form-check-input {
+  margin-left: -3em;
+}

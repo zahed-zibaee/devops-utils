@@ -4,8 +4,8 @@
   <p class="lead mb-4">{{ description }}</p>
 </div>
 <div class="">
-  <form class="row my-3 mx-2">
-    <div class="form-floating input-wrapper col-9 px-0">
+  <form class="row my-3 mx-1">
+    <div class="form-floating input-wrapper col-md-9 ms-md-auto px-0 justify-content-between">
       <select class="form-select form-control" id="intervalInput">
         <option value="60000">1</option>
         <option value="120000" selected>2</option>
@@ -15,10 +15,10 @@
       <label for="intervalInput">Refresh</label>
       <span class="unit-label">minute(s)</span>
     </div>
-    <div class="form-check form-switch col-3 align-content-center px-0">
-      <div class="ps-5 ms-3">
-        <input class="form-check-input " type="checkbox" id="toggleSwitch">
-        <label class="form-check-label" for="toggleSwitch">Auto Refresh</label>
+    <div class="form-check form-switch col-md-3 ms-md-auto d-flex justify-content-center align-items-center px-0">
+      <div class="ps-5 ms-4 my-3">
+        <input class="form-check-input " type="checkbox" id="toggleSwitch" checked>
+        <label class="form-check-label" for="toggleSwitch" >Auto Refresh</label>
       </div>
     </div>
   </form>
@@ -73,8 +73,7 @@
   {% if disabled_feature.get('kafka_lag_consumer_group') %}
   <div class="tab-content mb-1 mt-4" id="myTabContent">
     <div
-      class="tab-pane fade show active"
-      style="height: 60vh;"
+      class="tab-pane px-1 fade show active"
       id="syncLag"
       role="tabpanel"
       aria-labelledby="syncLagTab"
@@ -85,8 +84,7 @@
     {% endif %}
     {% if disabled_feature.get('kafka_lag_consumer_group') %}
     <div
-      class="tab-pane fade"
-      style="height: 90vh;"
+      class="tab-pane px-1 fade"
       id="connectorSinkStatus"
       role="tabpanel"
       aria-labelledby="connectorSinkStatusTab"
@@ -95,8 +93,7 @@
       </div>
     </div>
     <div
-    class="tab-pane fade"
-    style="height: 90vh;"
+    class="tab-pane px-1 fade"
     id="connectorSourceStatus"
     role="tabpanel"
     aria-labelledby="connectorSourceStatusTab"
@@ -115,7 +112,7 @@
       console.log("Hostname received from the parent: " + hostname);
       token = event.data.token;
       let intervalId = null;
-      let intervalValue = 60000; 
+      let intervalValue = parseInt(document.getElementById('intervalInput').value, 10); 
       function startInterval() {
           if (intervalId === null) {
               intervalId = setInterval(() => {
@@ -152,6 +149,9 @@
               updateInterval(newInterval);
           }
       });
+      if (document.getElementById('toggleSwitch').checked) {
+        startInterval();
+      }
       getMonitorBoolMetrics('kafka_connectors_lag');
       getMonitorBoolMetrics('debezium_connector_status_running_ratio_sink');
       getMonitorBoolMetrics('debezium_connector_status_running_ratio_source');
