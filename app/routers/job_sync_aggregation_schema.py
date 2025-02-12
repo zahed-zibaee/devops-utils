@@ -6,7 +6,7 @@ from app.core.kubernetes import create_job, job_status, job_time
 from app.core.logging import logger
 from app.core.config import settings
 from app.core.redis import is_locked, lock, unlock
-from app.schemas.main import Job
+from app.schemas.jobs import Job
 
 
 router = APIRouter()

@@ -2,7 +2,6 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
-from app.core.redis import close_redis
 from app.core.toggle_feature import get_active_features
 from app.core.middleware import LoggingMiddleware
 
@@ -18,10 +17,6 @@ app = get_application()
 app.middleware('http')(
     LoggingMiddleware()
 )
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    close_redis()
       
 @app.get("/api/v1/healthcheck")
 async def get_health():

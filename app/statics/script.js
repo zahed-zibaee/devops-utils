@@ -280,7 +280,7 @@ function ajaxEditProductTaxAndMoadian(productID) {
   const moadian_product_id = document.getElementById("editMoadianProductId").value;
   const jsonData = JSON.stringify(
     tax_rate === ""
-      ? { moadian_product_id: moadian_product_id }
+      ? { tax_rate: null, moadian_product_id: moadian_product_id }
       : { tax_rate: tax_rate, moadian_product_id: moadian_product_id }
   );
   $.ajax({
@@ -322,6 +322,9 @@ function ajaxRequestProductTaxMoadian(params) {
       200: function (res) {
         if (Array.isArray(res.rows)) {
           res.rows = res.rows.map((row) => {
+            row.tax_rate = row.tax_rate !== null ? row.tax_rate + "%"  : "Not Defined";
+            row.moadian_product_id = row.moadian_product_id !== "" ? row.moadian_product_id : "Not Defined";
+            row.state = row.state === true ? "Online" : "Offline";
 
             row.actions = `
               <button class="btn btn-sm btn-primary open-modal-edit-btn" data-id="${row.id}">

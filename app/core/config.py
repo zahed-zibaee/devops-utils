@@ -9,32 +9,26 @@ class Settings(BaseSettings):
     PORT: int = 8000
     DEBUG: bool = True
     ENVIRONMENT: str = 'dev'
-    # MYSQL WRITE config
-    DB_MYSQL_WRITE_HOST: str = '127.0.0.1'
-    DB_MYSQL_WRITE_DATABASE: str = 'mydatabase'
-    DB_MYSQL_WRITE_USERNAME: str = 'root'
-    DB_MYSQL_WRITE_PORT: str = '3306'
-    DB_MYSQL_WRITE_PASSWORD: str = ''
-    # MYSQL READ config
-    DB_MYSQL_READ_HOST: str = '127.0.0.1'
-    DB_MYSQL_READ_DATABASE: str = 'mydatabase'
-    DB_MYSQL_READ_USERNAME: str = 'root'
-    DB_MYSQL_READ_PORT: str = '3306'
-    DB_MYSQL_READ_PASSWORD: str = ''   
     # PostgreSQL write config
     DB_POSTGRES_WRITE_HOST: str = '127.0.0.1'
     DB_POSTGRES_WRITE_DATABASE_ACCESS: str = 'accssmngmnt'
     DB_POSTGRES_WRITE_DATABASE_LEGACY: str = 'legacy'
     DB_POSTGRES_WRITE_USERNAME: str = 'postgres'
     DB_POSTGRES_WRITE_PORT: str = '5432'
-    DB_POSTGRES_WRITE_PASSWORD: str = 'pvcaWkgVwP0OyJAAzEjRZo7lAQgfwd6w7ANuLCaI3PjAgIQTad96Uyg6ipmhQPbeZS084DToxVHSE7hnTnSBS9K'
+    DB_POSTGRES_WRITE_PASSWORD: str = 'mypass'
     # PostgreSQL write config
     DB_POSTGRES_READ_HOST: str = '127.0.0.1'
     DB_POSTGRES_READ_DATABASE_ACCESS: str = 'accssmngmnt'
     DB_POSTGRES_READ_DATABASE_LEGACY: str = 'legacy'
     DB_POSTGRES_READ_USERNAME: str = 'postgres'
     DB_POSTGRES_READ_PORT: str = '5432'
-    DB_POSTGRES_READ_PASSWORD: str = 'pvcaWkgVwP0OyJAAzEjRZo7lAQgfwd6w7ANuLCaI3PjAgIQTad96Uyg6ipmhQPbeZS084DToxVHSE7hnTnSBS9K'
+    DB_POSTGRES_READ_PASSWORD: str = 'mypass'
+    # PostgreSQL Aggregation config
+    DB_POSTGRES_AGGREGATION_HOST: str = '127.0.0.1'
+    DB_POSTGRES_AGGREGATION_DATABASE: str = 'aaggregation'
+    DB_POSTGRES_AGGREGATION_USERNAME: str = 'aaggregation'
+    DB_POSTGRES_AGGREGATION_PORT: str = '5432'
+    DB_POSTGRES_AGGREGATION_PASSWORD: str = 'mypass'
     # Toggle Feature
     DISABLED_FEATURES: list = []  
     # Argocd

@@ -131,7 +131,7 @@ def handlers(env, to_file=False):
 
 
 LOG_HANDLER = handlers(settings.ENVIRONMENT)
-LOGGING_LEVEL = logging.INFO if settings.DEBUG else logging.WARNING
+LOGGING_LEVEL = logging.DEBUG if settings.DEBUG else logging.WARNING
 
 LOG_CONFIG = {
     'version': 1,

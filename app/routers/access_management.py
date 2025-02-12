@@ -7,7 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy import String
 
 from app.core.db import get_db_postgres_access_read, get_db_postgres_access_write
-from app.schemas.main import Access, Permissions, PermissionsBase, PermissionsUpdate, AccessBase, AccessUpdate, PermissionLabels
+from app.schemas.access import Access, Permissions, PermissionsBase, PermissionsUpdate, AccessBase, AccessUpdate
 
 router = APIRouter()
 

@@ -7,7 +7,7 @@ from app.core.config import settings
 from app.core.redis import get_cache, set_cache
 from app.core.argocd import refresh_app
 from app.core.logging import logger
-from app.schemas.main import EditOrderLock
+from app.schemas.order_lock import EditOrderLock
 from app.core.redis import lock, unlock, is_locked
 
 

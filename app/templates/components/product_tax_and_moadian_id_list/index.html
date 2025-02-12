@@ -162,10 +162,13 @@
       if (rowData.tax_rate == "Not Defined") {
         document.getElementById("editTaxRate").value = "";
       } else {
-        document.getElementById("editTaxRate").value = rowData.tax_rate;
+        document.getElementById("editTaxRate").value = rowData.tax_rate.replace(/\%$/,'');
       }
-      document.getElementById("editMoadianProductId").value = rowData.moadian_product_id;
-
+      if (rowData.moadian_product_id == "Not Defined") {
+        document.getElementById("editMoadianProductId").value = "";
+      } else {
+        document.getElementById("editMoadianProductId").value = rowData.moadian_product_id;
+      }      
       const modal = new bootstrap.Modal(document.getElementById("editModal"));
       modal.show();
     }
