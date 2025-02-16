@@ -92,7 +92,7 @@ PostgresSessionLocalReadLegacy = sessionmaker(autocommit=False, autoflush=False,
 PostgresSessionLocalAggregation = sessionmaker(autocommit=False, autoflush=False, bind=engine_postgres_aggregation)
 
 
-def get_db_postgres_access_read():
+def Get_db_postgres_access_read():
     db = PostgresSessionLocalReadAccess()
     try:
         yield db
@@ -102,7 +102,7 @@ def get_db_postgres_access_read():
     finally:
         db.close()
 
-def get_db_postgres_access_write():
+def Get_db_postgres_access_write():
     db = PostgresSessionLocalWriteAccess()
     try:
         yield db
@@ -112,7 +112,7 @@ def get_db_postgres_access_write():
     finally:
         db.close()
 
-def get_db_postgres_legacy_read():
+def Get_db_postgres_legacy_read():
     db = PostgresSessionLocalReadLegacy()
     try:
         yield db
@@ -122,7 +122,7 @@ def get_db_postgres_legacy_read():
     finally:
         db.close()
 
-def get_db_postgres_legacy_write():
+def Get_db_postgres_legacy_write():
     db = PostgresSessionLocalWriteLegacy()
     try:
         yield db
@@ -132,7 +132,7 @@ def get_db_postgres_legacy_write():
     finally:
         db.close()
         
-def get_db_postgres_aggregation():
+def Get_db_postgres_aggregation():
     db = PostgresSessionLocalAggregation()
     try:
         yield db

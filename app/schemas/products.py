@@ -2,12 +2,11 @@ from pydantic import BaseModel, Field, ConfigDict, field_validator, model_valida
 from typing import Optional
 from fastapi import Query
 from sqlalchemy import Column, Integer, String, Boolean, BigInteger
-from sqlalchemy.orm import relationship
 from pandas import isna
-from app.schemas.main import Base
+from app.schemas.main import Base, BaseResponseModel, BaseCSVModel
 
 
-class Product(Base):
+class ProductTaxMoadian(Base):
     __tablename__ = "products"
 
     id = Column(BigInteger, primary_key=True, index=True)
@@ -19,29 +18,30 @@ class Product(Base):
     
     def get_table_name(self):
         return self.__tablename__
-    
-class GetProducts(BaseModel):
-    search: Optional[str] = None
-    limit: Optional[int] = Query(default=None, ge=1)
-    offset: Optional[int] = Query(default=0, ge=0)
 
-class GetProductsResponse(BaseModel):
-    id: int
+class ProductTaxMoadianResponseModel(BaseResponseModel):
+    """
+    Response model for the Product table.
+    Inherits from BaseResponseModel and adds Product-specific fields.
+    """
     name: str
-    tax_rate: int | None
+    tax_rate: Optional[int] = Field(None, ge=0, le=100)
     moadian_product_id: str
     state: bool
 
-    model_config = ConfigDict(from_attributes=True)
-
+    @field_validator("tax_rate")
+    def validate_tax_rate(cls, value):
+        if value is not None and (value < 0 or value > 100):
+            raise ValueError("Tax rate must be between 0 and 100")
+        return value
+    
 class ProductTaxMoadianUpdate(BaseModel):
-    tax_rate: int = Field(None, ge=0, le=100)
+    tax_rate: Optional[int] = Field(None, ge=0, le=100)
     moadian_product_id: str
 
     model_config = ConfigDict(from_attributes=True)
 
-class ProductCSVModel(BaseModel):
-    id: int
+class ProductTaxMoadianCSVModel(BaseCSVModel):
     tax_rate: Optional[int]  
     moadian_product_id: int | str
     
