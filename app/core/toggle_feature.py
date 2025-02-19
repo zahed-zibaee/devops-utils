@@ -1,6 +1,6 @@
 from app.routers import job_sync_access, job_sync_aggregation_schema, order_lock, product_tax_moadian,\
-    prometheus, components_routes, component, access_management, monitoring
-from app.core.feature_status import feature_status
+    prometheus, components_routes, component, access_management, monitoring, products_daily_purchased
+from app.core.feature_flag import feature_status
 
 def get_active_features():
     features = []
@@ -21,4 +21,6 @@ def get_active_features():
         features.append(job_sync_access)
     if feature_status('monitoring'):
         features.append(monitoring)
+    if feature_status('products_daily_purchased'):
+        features.append(products_daily_purchased)
     return features

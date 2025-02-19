@@ -35,7 +35,15 @@ function createToast(message, severity, status = 500, delay = 5000) {
     error: {
       alertClass: "alert-danger",
       iconClass: "bi-exclamation-triangle-fill",
-      customDelay: 30000,
+      customDelay: 300000,
+    },
+    failed: {
+      alertClass: "alert-danger",
+      iconClass: "bi-exclamation-triangle-fill",
+    },
+    unknown: {
+      alertClass: "alert-warning",
+      iconClass: "bi-exclamation-triangle-fill",
     },
     success: {
       alertClass: "alert-success",
@@ -67,7 +75,7 @@ function createToast(message, severity, status = 500, delay = 5000) {
   toastClone.addEventListener("hidden.bs.toast", () => toastClone.remove());
 }
 
-function createOrUpdateToastTask(status, jobName) {
+function createOrUpdateToastTask(status, jobName, autohide=false) {
   const toastId = `toast-${jobName}`;
   let existingToast = document.getElementById(toastId);
 
@@ -87,25 +95,31 @@ function createOrUpdateToastTask(status, jobName) {
       alertClass: "alert-light",
       iconClass: "bi-hourglass-split",
       message: `Job ${jobName} Status: Active`,
-      autohide: false,
+      autohide: autohide,
     },
     pending: {
       alertClass: "alert-warning",
       iconClass: "bi-hourglass-split",
       message: `Job ${jobName} Status: Pending`,
-      autohide: false,
+      autohide: autohide,
     },
     succeeded: {
       alertClass: "alert-success",
       iconClass: "bi-check2-circle",
       message: `Job ${jobName} Status: Succeeded`,
-      autohide: false,
+      autohide: autohide,
     },
     failed: {
       alertClass: "alert-danger",
       iconClass: "bi-exclamation-triangle-fill",
       message: `Job ${jobName} Status: Failed`,
-      autohide: false,
+      autohide: autohide,
+    },
+    unknown: {
+      alertClass: "alert-warning",
+      iconClass: "bi-exclamation-triangle-fill",
+      message: `Job ${jobName} Status: Unknown`,
+      autohide: autohide,
     },
   };
 
@@ -229,12 +243,9 @@ function responseHandler(res) {
   return res;
 }
 
-function exportProductTaxAndMoadian() {
-  const url = prepend_url(
-    "/devops-tools/v1/products/tax_and_moadian/export_csv"
-  );
+function exportCSV(url) {
   var xhr = $.ajax({
-    url: url,
+    url: prepend_url(url),
     type: "GET",
     headers: { Authorization: token },
     responseType: "blob",
@@ -250,7 +261,7 @@ function exportProductTaxAndMoadian() {
       }
 
       if (!filename) {
-        filename = "products.csv";
+        filename = "unknown.csv";
       }
       const bom = new Uint8Array([0xef, 0xbb, 0xbf]);
       const blob = new Blob([bom, data], { type: "text/csv;charset=utf-8" });
@@ -311,6 +322,52 @@ function ajaxEditProductTaxAndMoadian(productID) {
   });
 }
 
+function ajaxEditProductsDailyPurchased(ID) {
+  const url = prepend_url(
+    "/devops-tools/v1/products/products_daily_purchased/" + ID
+  );
+  inProgress();
+  const productID = document.getElementById("editProductID").value;
+  const date = document.getElementById("editDate").value;
+  const price = document.getElementById("editPrice").value;
+  const count = document.getElementById("editCount").value;
+  const description = document.getElementById("editDescription").value;
+  const jsonData = JSON.stringify(
+      { product_id: productID, 
+        date: date,
+        price: price,
+        count: count,
+        description: description
+      }
+  );
+  $.ajax({
+    url: url,
+    type: "PUT",
+    headers: { 
+      Authorization: token,
+      "Content-Type": "application/json",
+    },
+    data: jsonData,
+    statusCode: {
+      200: function (res) {
+        
+        createToast(
+          "Product Daily Purchased" + res.id + " updated.",
+          "success",
+          res.status
+        );
+        $("#table").bootstrapTable("refresh");
+      },
+    },
+    error: function (jqXHR, status, error) {
+      handleErrors(jqXHR.status, jqXHR.responseJSON);
+    },
+    complete: function () {
+      finishedProgress();
+    },
+  });
+}
+
 function ajaxRequestProductTaxMoadian(params) {
   const url = prepend_url("/devops-tools/v1/products/tax_and_moadian/list");
 
@@ -329,6 +386,49 @@ function ajaxRequestProductTaxMoadian(params) {
             row.actions = `
               <button class="btn btn-sm btn-primary open-modal-edit-btn" data-id="${row.id}">
                 Edit
+              </button>`;
+            return row;
+          });
+        } else {
+          console.error("Response rows are missing or not an array");
+        }
+
+        params.success(res);
+      },
+    },
+    error: function (jqXHR, status, error) {
+      handleErrors(jqXHR.status, jqXHR.responseJSON);
+    },
+  });
+}
+
+function ajaxRequestProductsDailyPurchased(params) {
+  const url = prepend_url("/devops-tools/v1/products/products_daily_purchased/list");
+
+  $.ajax({
+    url: url + "?" + $.param(params.data),
+    type: "GET",
+    headers: { Authorization: token },
+    statusCode: {
+      200: function (res) {
+        if (Array.isArray(res.rows)) {
+          res.rows = res.rows.map((row) => {
+            row.product_id = row.product_id !== null ? row.product_id : "Not Defined";
+            row.product_name = row.product_name !== null ? row.product_name : "Not Defined";
+            row.date = row.date !== null ? row.date : "Not Defined";
+            row.price = row.price !== null ? row.price.toLocaleString() + " Toman"  : "Not Defined";
+            row.count = row.count !== null ? row.count : "Not Defined";
+            row.description = row.description !== null ? row.description : "Not Defined";
+
+            row.actions = `
+              <button class="btn btn-sm btn-primary open-modal-edit-btn my-1" data-id="${row.id}">
+                Edit
+              </button>
+              <button class="btn btn-sm btn-secondary open-modal-add-btn my-1" data-id="${row.id}">
+                Add
+              </button>
+              <button class="btn btn-sm btn-danger open-modal-delete-btn my-1" data-id="${row.id}">
+                Delete
               </button>`;
             return row;
           });
@@ -380,7 +480,7 @@ function syncAggregationCreate(type) {
     .then((data) => {
       if (data.Status === "Created") {
         createOrUpdateToastTask("active", data.Job);
-        checkJobStatus("/devops-tools/v1/kubernetes/jobs/aggregation/status", data.Job)
+        checkJobStatus("/devops-tools/v1/kubernetes/jobs/aggregation/status/", data.Job)
       } else {
         console.error("Job creation failed:", data);
       }
@@ -407,7 +507,7 @@ function syncAccess() {
       .then((data) => {
         if (data.Status === "Created") {
           createOrUpdateToastTask("active", data.Job);
-          checkJobStatus("/devops-tools/v1/kubernetes/jobs/access/status", data.Job);
+          checkJobStatus("/devops-tools/v1/kubernetes/jobs/access/status/", data.Job);
         } else {
           console.error("Job creation failed:", data);
         }
@@ -419,41 +519,43 @@ function syncAccess() {
 }
 
 function checkJobStatus(endpoint, jobName) {
-  const statusUrl = prepend_url(
-    endpoint
-  );
-  fetch(statusUrl + `?job_name=${jobName}`, {
+  const statusUrl = prepend_url(endpoint);
+  
+  fetch(statusUrl + jobName, {
     headers: {
       Authorization: token,
     },
   })
     .then((response) => response.json())
     .then((data) => {
-      if (data) {
-        if (data.Pending) {
-          createOrUpdateToastTask("pending", jobName);
-        } else if (data.Succeeded) {
-          createOrUpdateToastTask("succeeded", jobName);
-        } else if (data.Failed) {
-          createOrUpdateToastTask("failed", jobName);
-        } else {
-          createOrUpdateToastTask("active", jobName);
-        }
-        if (data.Succeeded) {
-          console.log(
-            `Job ${jobName} has status: Succeeded. Stopping further requests.`
-          );
-          return;
-        }
-        if (data.Failed) {
-          console.log(
-            `Job ${jobName} has status: Failed. Stopping further requests.`
-          );
-          return;
+      if (data && data.status) {
+        switch (data.status.toLowerCase()) {
+          case "pending":
+            createOrUpdateToastTask("pending", jobName);
+            break;
+          case "succeeded":
+            createOrUpdateToastTask("succeeded", jobName, 5000);
+            createToast(`Job ${jobName} finished with status Success.`, "success", "Task", 9999999999);
+            console.log(`Job ${jobName} has status: Succeeded. Stopping further requests.`);
+            return;
+          case "failed":
+            createOrUpdateToastTask("failed", jobName, 5000);
+            createToast(`Job ${jobName} Failed.`, "error", data.error, 9999999999);
+            console.log(`Job ${jobName} has status: Failed. Stopping further requests. error: ${data.error}`);
+            return;
+          case "unknown":
+            createOrUpdateToastTask("warning", jobName, 5000);
+            createToast(`Job ${jobName} finished with status Unknown.`, "warning", "Task", 9999999999);
+            console.log(`Job ${jobName} has status: Unknown. Stopping further requests.`);
+            return;
+          default:
+            createOrUpdateToastTask("active", jobName);
+            break;
         }
       } else {
-        console.error("Data is null or undefined");
+        console.error("Invalid response format or missing 'status' key.");
       }
+
       setTimeout(() => checkJobStatus(endpoint, jobName), 5000);
     })
     .catch((error) => {
@@ -525,7 +627,7 @@ function getMonitorBoolMetrics(endpoint) {
   });
 };
 
-function uploadProductTaxAndMoadian() {
+function ImportCSV(url, checkJobStatusUrl) {
   inProgress();
   var file = csvFile.files[0];
   var taskID = getCurrentDateTime();
@@ -536,7 +638,7 @@ function uploadProductTaxAndMoadian() {
   }
   var formData = new FormData();
   formData.append("file", file);
-  url = prepend_url("/devops-tools/v1/products/tax_and_moadian/import_csv/" + taskID);
+  url = prepend_url(url + taskID);
   $.ajax(url, {
     type: "POST",
     data: formData,
@@ -548,8 +650,7 @@ function uploadProductTaxAndMoadian() {
     statusCode: {
       200: function (res) {
         createToast("Product CSV file uploaded. importing in process.", "success");
-        createOrUpdateToastTask("active", taskID);
-        checkJobStatusImportCSVTaxAndMoadian(taskID);
+        checkJobStatus(checkJobStatusUrl, taskID);
       },
     },
     error: function (jqXHR, status, error) {
@@ -557,83 +658,40 @@ function uploadProductTaxAndMoadian() {
     },
     complete: function () {
       finishedProgress();
+      csvFile.value = "";
     },
   });
-}
+};
 
-function checkJobStatusImportCSVTaxAndMoadian(jobName) {
-    url = prepend_url("/devops-tools/v1/products/tax_and_moadian/import_csv/status/" + jobName);
-    fetch(url, {
+function ajaxRequestAceessListTable(params) {
+  const url = prepend_url("/devops-tools/v1/access/endpoint/list")
+
+  const pageNumber = (params.data.offset / params.data.limit) + 1;
+  const pageSize = params.data.limit;
+  const searchTerm = params.data.search;
+  $.ajax({
+      url: url,
+      type: 'GET',
       headers: {
         Authorization: token,
       },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data) {
-          if (data.status == 'pending') {
-            createOrUpdateToastTask("pending", jobName);
-          } else if (data.status == 'succeeded') {
-            $table.bootstrapTable("refresh");
-            createOrUpdateToastTask("succeeded", jobName);
-          } else if (data.status == 'failed') {
-            createOrUpdateToastTask("failed", jobName);
-            createToast(data.error, "error");
-          } else {
-            createOrUpdateToastTask("active", jobName);
-          }
-          if (data.status == 'failed') {
-            console.log(
-              `Job ${jobName} has status: Failed. Stopping further requests.`
-            );
-            return;
-          }
-          if (data.status == 'succeeded') {
-            console.log(
-              `Job ${jobName} has status: Succeeded. Stopping further requests.`
-            );
-            return;
-          }
-        } else {
-          console.error("Data is null or undefined");
-        }
-        setTimeout(() => checkJobStatusImportCSVTaxAndMoadian(jobName), 5000);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-        setTimeout(() => checkJobStatusImportCSVTaxAndMoadian(jobName), 5000);
-      });
-  }
-
-  function ajaxRequestAceessListTable(params) {
-    const url = prepend_url("/devops-tools/v1/access/endpoint/list")
-  
-    const pageNumber = (params.data.offset / params.data.limit) + 1;
-    const pageSize = params.data.limit;
-    const searchTerm = params.data.search;
-    $.ajax({
-        url: url,
-        type: 'GET',
-        headers: {
-          Authorization: token,
-        },
-        data: {
-            page: pageNumber,
-            size: pageSize,
-            search: searchTerm
-        },
-        success: function (res) {
-            params.success({
-                total: res.total,
-                rows: res.items
-            });
-        },
-        error: function (jqXHR, status, error) {
-            console.error("Error loading data:", error);
-            params.error(error);
-        }
-    });
-  }
+      data: {
+          page: pageNumber,
+          size: pageSize,
+          search: searchTerm
+      },
+      success: function (res) {
+          params.success({
+              total: res.total,
+              rows: res.items
+          });
+      },
+      error: function (jqXHR, status, error) {
+          console.error("Error loading data:", error);
+          params.error(error);
+      }
+  });
+}
 
 function ajaxRequestPermissionTable(params) {
   const url = prepend_url("/devops-tools/v1/access/permissions/list")

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Request
 from fastapi.templating import Jinja2Templates
 
 from app.core.config import settings
-from app.core.feature_status import feature_status
+from app.core.feature_flag import feature_status
 
 
 router = APIRouter()
@@ -10,9 +10,9 @@ templates = Jinja2Templates(directory="app/templates")
 
 @router.get("/devops-tools-front/v1/component/products/tax_and_moadian")
 async def get_products_component(request: Request):
-    return templates.TemplateResponse("components/product_tax_and_moadian_id_list/index.html", {
+    return templates.TemplateResponse("components/product_tax_and_moadian/index.html", {
         "request": request, 
-        "title": "Products", 
+        "title": "Products Rax And Moadian ID", 
         "hash": settings.GIT_HASH,
         "description": "Product list/import for tax rate and moadian samane ID.",
         "disabled_feature": {
@@ -20,6 +20,18 @@ async def get_products_component(request: Request):
         }, 
         })
 
+@router.get("/devops-tools-front/v1/component/products/products_daily_purchased")
+async def get_products_component(request: Request):
+    return templates.TemplateResponse("components/products_daily_purchased/index.html", {
+        "request": request, 
+        "title": "Products Daily Purchased", 
+        "hash": settings.GIT_HASH,
+        "description": "Products daily purchased list/import.",
+        "disabled_feature": {
+            "products_daily_purchased": feature_status('products_daily_purchased')
+        }, 
+        })
+    
 @router.get("/devops-tools-front/v1/component/app_settings")
 async def get_app_settings_component(request: Request):
     return templates.TemplateResponse("components/app-settings/index.html", {

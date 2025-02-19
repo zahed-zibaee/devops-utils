@@ -52,15 +52,17 @@
     data-show-columns-search="true"
     data-sortable="false"
     data-side-pagination="server"
-    data-ajax="ajaxRequestProductTaxMoadian"
+    data-ajax="ajaxRequestProductsDailyPurchased"
   >
   <thead>
     <tr>
       <th data-field="id">ID</th>
-      <th data-field="name">Name</th>
-      <th data-field="tax_rate">Tax Rate</th>
-      <th data-field="moadian_product_id">Moadian Product ID</th>
-      <th data-field="state">State</th>
+      <th data-field="product_id">Product ID</th>
+      <th data-field="product_name">Product Name</th>
+      <th data-field="date">Date</th>
+      <th data-field="price">Price</th>
+      <th data-field="count">Count</th>
+      <th data-field="description">Description</th>
       <th data-field="actions">Actions</th>
     </tr>
   </thead>
@@ -68,10 +70,12 @@
     <!-- Example Rows -->
     <tr>
       <td>1</td>
-      <td>Product A</td>
-      <td>10%</td>
-      <td>12345</td>
-      <td>Active</td>
+      <td>1</td>
+      <td>Product 1</td>
+      <td>2000-01-01</td>
+      <td>1000$</td>
+      <td>10</td>
+      <td>Some text</td>
       <td>
         <button class="btn btn-sm btn-primary edit-btn" data-bs-toggle="modal" data-bs-target="#editModal">
           Edit
@@ -87,7 +91,7 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="editModalLabel">Edit Product Tax Rate And Moadian Product ID</h5>
+        <h5 class="modal-title" id="editModalLabel">Edit Product Daily Purchased</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -97,16 +101,28 @@
             <input type="text" class="form-control " id="editID" readonly disabled/>
           </div>
           <div class="mb-3">
-            <label for="editName" class="form-label">Name</label>
-            <input type="text" class="form-control " id="editName" readonly disabled/>
+            <label for="editProductID" class="form-label">Product ID</label>
+            <input type="text" class="form-control " id="editProductID"/>
           </div>
           <div class="mb-3">
-            <label for="editTaxRate" class="form-label">Tax Rate</label>
-            <input type="text" class="form-control" id="editTaxRate" />
+            <label for="editProductName" class="form-label">Product Name</label>
+            <input type="text" class="form-control " id="editProductName" readonly disabled/>
           </div>
           <div class="mb-3">
-            <label for="editMoadianProductId" class="form-label">Moadian Product ID</label>
-            <input type="text" class="form-control" id="editMoadianProductId" />
+            <label for="editDate" class="form-label">Date</label>
+            <input type="text" class="form-control" id="editDate" />
+          </div>
+          <div class="mb-3">
+            <label for="editPrice" class="form-label">Price</label>
+            <input type="text" class="form-control" id="editPrice" />
+          </div>
+          <div class="mb-3">
+            <label for="editCount" class="form-label">Count</label>
+            <input type="text" class="form-control" id="editCount" />
+          </div>
+          <div class="mb-3">
+            <label for="editDescription" class="form-label">Description</label>
+            <input type="text" class="form-control" id="editDescription" />
           </div>
         </form>
       </div>
@@ -144,13 +160,18 @@
     }
   });
   csvFile.addEventListener("change", () => {
-    uploadProductTaxAndMoadian();
+    ImportCSV(
+      "/devops-tools/v1/products/products_daily_purchased/import_csv/", 
+      '/devops-tools/v1/products/products_daily_purchased/import_csv/status/'
+      );
+    $table.bootstrapTable("refresh");
   });
+  
   exportButton.addEventListener("click", () => {
-    exportProductTaxAndMoadian();
+    exportCSV("/devops-tools/v1/products/products_daily_purchased/export_csv");
   });
   saveButton.addEventListener("click", () => {
-    ajaxEditProductTaxAndMoadian(document.getElementById("editID").value);
+    ajaxEditProductsDailyPurchased(document.getElementById("editID").value);
   });
   $(document).on("click", ".open-modal-edit-btn", function () {
     var rowId = $(this).data("id");
@@ -158,17 +179,36 @@
 
     if (rowData) {
       document.getElementById("editID").value = rowData.id;
-      document.getElementById("editName").value = rowData.name;
-      if (rowData.tax_rate == "Not Defined") {
-        document.getElementById("editTaxRate").value = "";
+      if (rowData.product_id == "Not Defined") {
+        document.getElementById("editProductID").value = "";
       } else {
-        document.getElementById("editTaxRate").value = rowData.tax_rate.replace(/\%$/,'');
+        document.getElementById("editProductID").value = rowData.product_id;
       }
-      if (rowData.moadian_product_id == "Not Defined") {
-        document.getElementById("editMoadianProductId").value = "";
+      if (rowData.product_name == "Not Defined") {
+        document.getElementById("editProductName").value = "";
       } else {
-        document.getElementById("editMoadianProductId").value = rowData.moadian_product_id;
-      }      
+        document.getElementById("editProductName").value = rowData.product_name;
+      }
+      if (rowData.date == "Not Defined") {
+        document.getElementById("editDate").value = "";
+      } else {
+        document.getElementById("editDate").value = rowData.date;
+      }
+      if (rowData.price == "Not Defined") {
+        document.getElementById("editPrice").value = "";
+      } else {
+        document.getElementById("editPrice").value = String(rowData.price).replace(/,/,'').replace(/ Toman$/,'');
+      }
+      if (rowData.count == "Not Defined") {
+        document.getElementById("editCount").value = "";
+      } else {
+        document.getElementById("editCount").value = rowData.count;
+      }
+      if (rowData.description == "Not Defined") {
+        document.getElementById("editDescription").value = "";
+      } else {
+        document.getElementById("editDescription").value = rowData.description;
+      }  
       const modal = new bootstrap.Modal(document.getElementById("editModal"));
       modal.show();
     }

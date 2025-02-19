@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.core.feature_status import feature_status
+from app.core.feature_flag import feature_status
 
 
 router = APIRouter()
@@ -8,6 +8,11 @@ router = APIRouter()
 @router.get("/devops-tools/v1/component/routes")
 async def get_tools():
     tools = []
+    if feature_status('products_daily_purchased'):
+        tools.append({
+            "name": "خرید روزانه کالا",
+            "endpoint": "/products/products_daily_purchased",
+        })
     if feature_status('product_tax_moadian'):
         tools.append({
             "name": "مالیات و کد کالا",

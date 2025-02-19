@@ -1,12 +1,11 @@
-from pydantic import BaseModel, Field, ConfigDict, field_validator, model_validator
+from pydantic import Field, field_validator, model_validator
 from typing import Optional
-from fastapi import Query
 from sqlalchemy import Column, Integer, String, Boolean, BigInteger
 from pandas import isna
-from app.schemas.main import Base, BaseResponseModel, BaseCSVModel
+from app.schemas.main import Base, BaseResponseModel, BaseCSVModel, BaseUpdateModel
 
 
-class ProductTaxMoadian(Base):
+class Product(Base):
     __tablename__ = "products"
 
     id = Column(BigInteger, primary_key=True, index=True)
@@ -15,15 +14,8 @@ class ProductTaxMoadian(Base):
     moadian_product_id = Column(String, nullable=False)
     status = Column(Boolean)
     state = Column(Boolean)
-    
-    def get_table_name(self):
-        return self.__tablename__
 
 class ProductTaxMoadianResponseModel(BaseResponseModel):
-    """
-    Response model for the Product table.
-    Inherits from BaseResponseModel and adds Product-specific fields.
-    """
     name: str
     tax_rate: Optional[int] = Field(None, ge=0, le=100)
     moadian_product_id: str
@@ -35,15 +27,23 @@ class ProductTaxMoadianResponseModel(BaseResponseModel):
             raise ValueError("Tax rate must be between 0 and 100")
         return value
     
-class ProductTaxMoadianUpdate(BaseModel):
+    @field_validator("moadian_product_id")
+    def validate_moadian_product_id(cls, value):
+        if value != "":
+            try:
+                return str(int(value))
+            except:
+                return ValueError("Moadian Product ID must be empty string or a number")
+        else:
+            return ""
+    
+class ProductTaxMoadianUpdate(BaseUpdateModel):
     tax_rate: Optional[int] = Field(None, ge=0, le=100)
     moadian_product_id: str
 
-    model_config = ConfigDict(from_attributes=True)
-
 class ProductTaxMoadianCSVModel(BaseCSVModel):
     tax_rate: Optional[int]  
-    moadian_product_id: int | str
+    moadian_product_id: str
     
     @model_validator(mode="before")
     def normalize_data(cls, values):
@@ -58,7 +58,7 @@ class ProductTaxMoadianCSVModel(BaseCSVModel):
             if "moadian_product_id" in values and isna(values["moadian_product_id"]):
                 values["moadian_product_id"] = ""
             else:
-                values["moadian_product_id"] = int(values["moadian_product_id"])
+                values["moadian_product_id"] = str(int(values["moadian_product_id"]))
 
         except (ValueError, KeyError) as e:
             raise ValueError(f"Invalid data format: {e}")
@@ -72,6 +72,6 @@ class ProductTaxMoadianCSVModel(BaseCSVModel):
 
     @field_validator("moadian_product_id", mode="before")
     def validate_moadian_product_id(cls, value):
-        if value in [None, "nan", ""]:
+        if isna(value):
             return ""  
         return str(value)  

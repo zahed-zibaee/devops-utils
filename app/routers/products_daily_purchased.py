@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, File, UploadFile, HTTPException, BackgroundTasks, status
 from fastapi.responses import JSONResponse, StreamingResponse
-from sqlalchemy import text, or_, and_
+from sqlalchemy import or_, and_
 from sqlalchemy.orm import Session
 from typing import Dict, Any
 
@@ -10,50 +10,57 @@ from app.schemas.main import BaseListRequest
 from app.core.crud import get_list, update_item
 from app.core.csv_export import export_to_csv
 from app.core.csv_import import import_to_csv_task, process_csv, get_task_import_csv_status, set_task_import_csv_status
-from app.schemas.products import ProductTaxMoadianResponseModel, Product, \
-    ProductTaxMoadianUpdate, ProductTaxMoadianCSVModel
+from app.schemas.products_daily_purchased import ProductDailyPurchasedResponse, ProductDailyPurchased, \
+    ProductDailyPurchasedUpdate, ProductDailyPurchasedCSVModel, ProductResponse
+from app.schemas.products import Product
 from app.core.db import get_db_postgres_write, get_db_postgres_read
-
-# TOCO
-# task to db
-# srtucture?
 
 router = APIRouter()
 
-MainTableModel = Product
-GetResponseModel = ProductTaxMoadianResponseModel
-UpdateItemModel = ProductTaxMoadianUpdate
-CSVModel = ProductTaxMoadianCSVModel
+MainTableModel = ProductDailyPurchased
+GetResponseModel = ProductDailyPurchasedResponse
+UpdateItemModel = ProductDailyPurchasedUpdate
+CSVModel = ProductDailyPurchasedCSVModel
 DOMAIN = "product"
-SUB_DOMAIN = "products_tax_and_moadian"
+SUB_DOMAIN = "products_daily_purchased"
 LOCK_IMPORT_NAME = f"{SUB_DOMAIN}_csv".upper()
-REMOVE_UNWANTED_CSV_FIELD_LIST = ['status']
-IMPORT_CSV_REQUIRED_COLUMNS = ["id", "tax_rate", "moadian_product_id"]
-SOFT_DELETE = MainTableModel.status == 0
+REMOVE_UNWANTED_CSV_FIELD_LIST = []
+IMPORT_CSV_REQUIRED_COLUMNS = ["id", "product_id", "date", "price", "count", "description"]
+SOFT_DELETE = None
 LIST_OPTIONS = []
-FOREIGN_KEYS = None
-FOREIGN_DATA = None
-DB_SESSION_GENERATOR_READ = lambda: next(get_db_postgres_read('legacy'))
-DB_SESSION_GENERATOR_WRITE = lambda: next(get_db_postgres_write('legacy'))
+FOREIGN_KEYS = {"product_id": Product}
+DB_SESSION_GENERATOR_READ = lambda: next(get_db_postgres_read("product"))
+DB_SESSION_GENERATOR_WRITE = lambda: next(get_db_postgres_write("product"))
+FOREIGN_DATA={
+        "product_id": {
+                "pk": "id",
+                "db": next(get_db_postgres_read("legacy")),
+                "model": Product,
+                "response_schema": ProductResponse,
+                "soft_delete_condition": (Product.status == 0),
+                "fields_needed": ['name'],
+                "nested_foreign_data": {}
+            },
+    }
 
 def update_row_data(main_table: MainTableModel, csv_row: dict):
-    main_table.tax_rate = csv_row.get("tax_rate")
-    main_table.moadian_product_id = csv_row.get("moadian_product_id")
+    main_table.product_id = csv_row.get("product_id")
+    main_table.date = csv_row.get("date")
+    main_table.price = csv_row.get("price")
+    main_table.count = csv_row.get("count")
+    main_table.description = csv_row.get("description")
     
     return main_table
   
 def remove_csv_null_data(df: pd.DataFrame):
-    df.dropna(subset=[col for col in df.columns if col not in ["id", 'name', 'state']], how="all", inplace=True)
-
-@router.get(
-    "/devops-tools/v1/products/tax_and_moadian/import_csv/status/{task_id}", 
-    response_model=Dict[str, Any],
-)
-async def get_task_import_products_tax_and_moadian_csv_status(task_id: int):
-    return get_task_import_csv_status(task_id, SUB_DOMAIN) 
+    pass
+      
+@router.get("/devops-tools/v1/products/products_daily_purchased/import_csv/status/{task_id}", response_model=Dict[str, Any])
+async def get_task_import_products_daily_purchased_csv_status(task_id: int):
+    return get_task_import_csv_status(task_id, SUB_DOMAIN)  
 
 def truncate_data(db_write):
-    db_write.execute(text("UPDATE products SET tax_rate = NULL, moadian_product_id= ''"))
+    pass
 
 def create_search_filter(params):
     """
@@ -65,7 +72,8 @@ def create_search_filter(params):
     if params.search:
         conditions.append(or_(
             MainTableModel.id == params.search,
-            MainTableModel.name.ilike(f"%{params.search}%"),
+            MainTableModel.product_id == params.search,
+            MainTableModel.description.ilike(f"%{params.search}%"),
         ))
 
     # Add additional filter conditions
@@ -74,8 +82,8 @@ def create_search_filter(params):
     # Combine all conditions with AND
     return and_(*conditions) if conditions else None
 
-@router.get("/devops-tools/v1/products/tax_and_moadian/list", response_model=Dict[str, Any])
-async def get_product_tax_and_moadian_list(
+@router.get("/devops-tools/v1/products/products_daily_purchased/list", response_model=Dict[str, Any])
+async def get_products_daily_purchased_list(
     params: BaseListRequest = Depends(),
     db: Session = Depends(DB_SESSION_GENERATOR_READ),
 ):
@@ -96,8 +104,8 @@ async def get_product_tax_and_moadian_list(
         foreign_data=FOREIGN_DATA,
     )
 
-@router.get("/devops-tools/v1/products/tax_and_moadian/export_csv", response_class=StreamingResponse)
-async def export_product_tax_and_moadian_csv(
+@router.get("/devops-tools/v1/products/products_daily_purchased/export_csv", response_class=StreamingResponse)
+async def export_products_daily_purchased_csv(
     db: Session = Depends(DB_SESSION_GENERATOR_READ),
 ):
     return export_to_csv(
@@ -114,7 +122,7 @@ async def export_product_tax_and_moadian_csv(
     )
 
 @router.post(
-    "/devops-tools/v1/products/tax_and_moadian/import_csv/{task_id}",
+    "/devops-tools/v1/products/products_daily_purchased/import_csv/{task_id}",
     status_code=status.HTTP_201_CREATED,
     response_model=Dict[str, Any],
 )
@@ -136,8 +144,7 @@ async def import_tax_and_moadian_csv(
             detail="Invalid file extension (only CSV files!).",
         )
     set_task_import_csv_status(task_id, "active", SUB_DOMAIN, ttl=1260)
-    background_tasks.add_task(
-        import_to_csv_task,
+    import_to_csv_task(
         process_csv(
             file=file,
             required_columns=IMPORT_CSV_REQUIRED_COLUMNS,
@@ -155,15 +162,39 @@ async def import_tax_and_moadian_csv(
         lock_name=LOCK_IMPORT_NAME,
         soft_delete_condition=SOFT_DELETE,
         perform_update=True,
+        perform_insert=True,
         foreign_data=FOREIGN_DATA,
     )
+    
+    # background_tasks.add_task(
+    #     import_to_csv_task,
+    #     process_csv(
+    #         file=file,
+    #         required_columns=IMPORT_CSV_REQUIRED_COLUMNS,
+    #         csv_model=CSVModel,
+    #         domain=SUB_DOMAIN,
+    #         remove_csv_null_data=remove_csv_null_data,
+    #     ),
+    #     domain=SUB_DOMAIN,
+    #     task_id=task_id,
+    #     db_read=db_read,
+    #     db_write=db_write,
+    #     model=MainTableModel,
+    #     update_row_data=update_row_data,
+    #     truncate_data=truncate_data,
+    #     lock_name=LOCK_IMPORT_NAME,
+    #     soft_delete_condition=SOFT_DELETE,
+    #     perform_update=True,
+    #     perform_insert=True,
+    #     foreign_keys=FOREIGN_KEYS,
+    # )
 
     return JSONResponse(
         content={"message": "Task accepted for processing", "task_id": f"{task_id}"},
         media_type="application/json",
     )
 
-@router.put("/devops-tools/v1/products/tax_and_moadian/{row_id}", response_model=GetResponseModel)
+@router.put("/devops-tools/v1/products/products_daily_purchased/{row_id}", response_model=GetResponseModel)
 async def update_tax_and_moadian_product(
     row_id: int,
     new_data: UpdateItemModel,
@@ -176,5 +207,5 @@ async def update_tax_and_moadian_product(
         model=MainTableModel,
         response_schema=GetResponseModel,
         soft_delete_condition=SOFT_DELETE,
-        foreign_data=FOREIGN_KEYS,
+        foreign_data=FOREIGN_DATA,
     )

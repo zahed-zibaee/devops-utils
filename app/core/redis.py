@@ -19,14 +19,6 @@ def get_redis() -> Redis:
     except Exception as e:
         logger.error(f"Failed to connect to Redis: {e}")
         raise
-
-def close_redis(redis_client: redis.Redis) -> None:
-    """Closes the Redis connection if open."""
-    try:
-        if redis_client:
-            redis_client.close()
-    except Exception as e:
-        print(f"Failed to close Redis connection: {e}")
         
 def get_cache(service: str, key: str):
     """Retrieve a cached value from Redis."""
