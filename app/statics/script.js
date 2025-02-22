@@ -385,7 +385,7 @@ function ajaxRequestProductTaxMoadian(params) {
 
             row.actions = `
               <button class="btn btn-sm btn-primary open-modal-edit-btn" data-id="${row.id}">
-                Edit
+                <i class="bi bi-pen h6"></i> Edit
               </button>`;
             return row;
           });
@@ -422,13 +422,10 @@ function ajaxRequestProductsDailyPurchased(params) {
 
             row.actions = `
               <button class="btn btn-sm btn-primary open-modal-edit-btn my-1" data-id="${row.id}">
-                Edit
-              </button>
-              <button class="btn btn-sm btn-secondary open-modal-add-btn my-1" data-id="${row.id}">
-                Add
+                <i class="bi bi-pen h6"></i> Edit
               </button>
               <button class="btn btn-sm btn-danger open-modal-delete-btn my-1" data-id="${row.id}">
-                Delete
+                <i class="bi bi-trash h6"></i> Delete
               </button>`;
             return row;
           });
