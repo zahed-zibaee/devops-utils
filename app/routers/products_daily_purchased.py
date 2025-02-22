@@ -7,11 +7,11 @@ from typing import Dict, Any
 import pandas as pd
 
 from app.schemas.main import BaseListRequest
-from app.core.crud import get_list, update_item
+from app.core.crud import get_list, update_item, delete_item, create_item
 from app.core.csv_export import export_to_csv
 from app.core.csv_import import import_to_csv_task, process_csv, get_task_import_csv_status, set_task_import_csv_status
 from app.schemas.products_daily_purchased import ProductDailyPurchasedResponse, ProductDailyPurchased, \
-    ProductDailyPurchasedUpdate, ProductDailyPurchasedCSVModel, ProductResponse
+    ProductDailyPurchasedUpdate, ProductDailyPurchasedCSVModel, ProductResponse, ProductDailyPurchasedCreate
 from app.schemas.products import Product
 from app.core.db import get_db_postgres_write, get_db_postgres_read
 
@@ -21,6 +21,7 @@ MainTableModel = ProductDailyPurchased
 GetResponseModel = ProductDailyPurchasedResponse
 UpdateItemModel = ProductDailyPurchasedUpdate
 CSVModel = ProductDailyPurchasedCSVModel
+CreateItemModel = ProductDailyPurchasedCreate
 DOMAIN = "product"
 SUB_DOMAIN = "products_daily_purchased"
 LOCK_IMPORT_NAME = f"{SUB_DOMAIN}_csv".upper()
@@ -70,11 +71,16 @@ def create_search_filter(params):
 
     # Add search condition
     if params.search:
-        conditions.append(or_(
-            MainTableModel.id == params.search,
-            MainTableModel.product_id == params.search,
-            MainTableModel.description.ilike(f"%{params.search}%"),
-        ))
+        try:
+            conditions.append(or_(
+                MainTableModel.id == int(params.search),
+                MainTableModel.product_id == int(params.search),
+                MainTableModel.description.ilike(f"%{params.search}%"),
+            ))
+        except:
+            conditions.append(
+                MainTableModel.description.ilike(f"%{params.search}%"),
+            )
 
     # Add additional filter conditions
     # NO FILTER
@@ -126,7 +132,7 @@ async def export_products_daily_purchased_csv(
     status_code=status.HTTP_201_CREATED,
     response_model=Dict[str, Any],
 )
-async def import_tax_and_moadian_csv(
+async def import_products_daily_purchased_csv(
     background_tasks: BackgroundTasks,
     task_id: int,
     file: UploadFile = File(...),
@@ -173,7 +179,7 @@ async def import_tax_and_moadian_csv(
     )
 
 @router.put("/devops-tools/v1/products/products_daily_purchased/{row_id}", response_model=GetResponseModel)
-async def update_tax_and_moadian_product(
+async def update_products_daily_purchased_product(
     row_id: int,
     new_data: UpdateItemModel,
     db: Session = Depends(DB_SESSION_GENERATOR_WRITE),
@@ -185,5 +191,30 @@ async def update_tax_and_moadian_product(
         model=MainTableModel,
         response_schema=GetResponseModel,
         soft_delete_condition=SOFT_DELETE,
+        foreign_data=FOREIGN_DATA,
+    )
+
+@router.delete("/devops-tools/v1/products/products_daily_purchased/{row_id}")
+async def delete_products_daily_purchased_product(
+    row_id: int,
+    db: Session = Depends(DB_SESSION_GENERATOR_WRITE),
+) -> Dict:
+    return delete_item(
+        row_id=row_id,
+        db=db,
+        model=MainTableModel,
+        soft_delete_condition=SOFT_DELETE,
+    )
+    
+@router.post("/devops-tools/v1/products/products_daily_purchased", response_model=GetResponseModel)
+async def create_products_daily_purchased_product(
+    new_data: CreateItemModel,
+    db: Session = Depends(DB_SESSION_GENERATOR_WRITE),
+) -> GetResponseModel:
+    return create_item(
+        create_data=new_data,
+        db=db,
+        model=MainTableModel,
+        response_schema=GetResponseModel,
         foreign_data=FOREIGN_DATA,
     )

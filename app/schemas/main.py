@@ -26,3 +26,7 @@ class BaseCSVModel(BaseModel):
 class BaseUpdateModel(BaseModel):
     
     model_config = ConfigDict(from_attributes=True)
+    
+class BaseCreateModel(BaseModel):
+    
+    model_config = ConfigDict(from_attributes=True)

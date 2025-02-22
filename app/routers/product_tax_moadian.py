@@ -63,10 +63,15 @@ def create_search_filter(params):
 
     # Add search condition
     if params.search:
-        conditions.append(or_(
-            MainTableModel.id == params.search,
-            MainTableModel.name.ilike(f"%{params.search}%"),
-        ))
+        try:
+            conditions.append(or_(
+                MainTableModel.id == int(params.search),
+                MainTableModel.name.ilike(f"%{params.search}%"),
+            ))
+        except:
+            conditions.append(
+                MainTableModel.name.ilike(f"%{params.search}%"),
+            )
 
     # Add additional filter conditions
     # NO FILTER

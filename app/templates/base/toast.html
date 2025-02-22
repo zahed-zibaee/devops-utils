@@ -27,11 +27,19 @@
   <div
     class="alert me-auto d-flex align-items-center justify-content-between mb-0"
     role="alert"
+    style="min-width: 300px"
   >
-    <div class="d-flex">
+    <!-- Icon and Message Container -->
+    <div class="d-flex flex-grow-1 align-items-center">
       <i class="svg-icon bi h4 me-2 my-auto"></i>
-      <div class="alert-message h6 my-auto">Message</div>
+      <div
+        class="alert-message h6 my-auto"
+        style="flex: 1; min-width: 0; overflow-wrap: break-word"
+      >
+        Message
+      </div>
     </div>
+    <!-- Close Button -->
     <button
       type="button"
       class="btn-close"

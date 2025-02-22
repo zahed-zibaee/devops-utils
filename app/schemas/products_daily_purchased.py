@@ -1,14 +1,12 @@
 
 
 from datetime import date, datetime
-from pydantic import model_validator
+from pydantic import model_validator, Field
 from typing import Optional
-from sqlalchemy import Column, Integer, String, Date, BigInteger, ForeignKey
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, Integer, String, Date, BigInteger
 from pandas import isna
 
-from app.schemas.main import Base, BaseResponseModel, BaseCSVModel, BaseUpdateModel
-from app.schemas.products import Product
+from app.schemas.main import Base, BaseResponseModel, BaseCSVModel, BaseUpdateModel, BaseCreateModel
        
 class ProductDailyPurchased(Base):
     __tablename__ = "products_daily_purchased"
@@ -28,8 +26,8 @@ class ProductDailyPurchasedResponse(BaseResponseModel):
     product_id: int
     product_name: str
     date: date
-    price: int
-    count: int
+    price: int = Field(ge=0, le=9223372036854775806)
+    count: int = Field(ge=0, le=9223372036854775806)
     description: str
     
     @classmethod
@@ -48,10 +46,17 @@ class ProductDailyPurchasedResponse(BaseResponseModel):
 class ProductDailyPurchasedUpdate(BaseUpdateModel):
     product_id: int
     date: date
-    price: int
-    count: int
+    price: int = Field(ge=0, le=9223372036854775806)
+    count: int = Field(ge=0, le=9223372036854775806)
     description: Optional[str]
-        
+  
+class ProductDailyPurchasedCreate(BaseCreateModel):
+    product_id: int
+    date: date
+    price: int = Field(ge=0, le=9223372036854775806)
+    count: int = Field(ge=0, le=9223372036854775806)
+    description: Optional[str]
+          
 class ProductDailyPurchasedCSVModel(BaseCSVModel):
     product_id: int
     date: date
@@ -63,8 +68,14 @@ class ProductDailyPurchasedCSVModel(BaseCSVModel):
     def normalize_data(cls, values):
         try:
             values["id"] = int(values["id"])
-            values["price"] = int(values["price"])
-            values["count"] = int(values["count"])
+            if isinstance(values["price"], int) and int >= 0 and int <= 9223372036854775806:
+                values["price"] = int(values["price"])
+            else:
+                raise ValueError(f"Invalid data format: price column value must be an integer.")
+            if isinstance(values["count"], int) and int >= 0 and int <= 9223372036854775806:
+                values["count"] = int(values["count"])
+            else:
+                raise ValueError(f"Invalid data format: count column value must be an integer.")
             values["date"] = datetime.strptime(values["date"], '%Y-%m-%d')
             if "description" in values and isna(values["description"]):
                 values["description"] = ""

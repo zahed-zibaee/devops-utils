@@ -203,6 +203,9 @@ def extract_foreign_keys(
     if not isinstance(rows, list):
         rows = [rows]  # Convert to list if it's a single row
 
+    if len(rows) == 0:
+        return foreign_pks
+    
     # Iterate through the rows
     for row in rows:
         for fk, details in foreign_data.items():
@@ -522,13 +525,14 @@ def update_item(
             # Fetch related foreign data (recursively)
             related_data = fetch_related_data(foreign_data, foreign_pks)
             # Merge foreign key data into the row
-            merged_row = merge_foreign_keys([row], foreign_data, related_data)[0]
+            row = merge_foreign_keys([row], foreign_data, related_data)[0]
+            
         
         # Commit the changes to the database
         db.commit()
         
         # Serialize the updated row
-        updated_data = response_schema.from_orm(merged_row).model_dump()
+        updated_data = response_schema.from_orm(row).model_dump()
 
         return updated_data
 
@@ -573,7 +577,7 @@ def create_item(
             check_foreign_keys_exist(foreign_data, create_data.model_dump())
         
         # Create the model instance from the provided data
-        new_item = model(**create_data)
+        new_item = model(**create_data.model_dump())
         
         # Add the new item to the session
         db.add(new_item)
