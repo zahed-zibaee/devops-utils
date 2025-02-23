@@ -269,3 +269,9 @@
 #locale {
   width: 100%;
 }
+
+.note {
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #455970;
+}

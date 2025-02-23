@@ -16,7 +16,7 @@ async def get_products_tax_and_moadian_component(request: Request):
             "request": request, 
             "title": "Products Rax And Moadian ID", 
             "hash": settings.GIT_HASH,
-            "description": "Product list/import/edit for tax rate and moadian samane ID.",
+            "description": "Product list/import/edit for tax rate and moadian samane ID.<br><div class='note'>note: import csv only applies data update.</div>",
             "disabled_feature": {
                 "product_tax_moadian": feature_status('product_tax_moadian')
             },
@@ -59,7 +59,7 @@ async def get_products_daily_purchased_component(request: Request):
             "request": request, 
             "title": "Products Daily Purchased", 
             "hash": settings.GIT_HASH,
-            "description": "Products daily purchased list/import/add/edit/delete.",
+            "description": "Products daily purchased list/import/add/edit/delete.<br><div class='note'>note: import csv only applies data update and data insert.</div>",
             "disabled_feature": {
                 "products_daily_purchased": feature_status('products_daily_purchased')
             },

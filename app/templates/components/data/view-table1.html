@@ -1,7 +1,7 @@
 {% extends "base/base.html" %} {% block content %}
 <div class="starter-template my-3">
   <h1>{{ title }}</h1>
-  <p class="lead mb-4">{{ description }}</p>
+  <div class="lead mb-4">{{ description | safe }}</div>
 </div>
 
 <!-- Locale Selector (hidden by default) -->
@@ -16,18 +16,18 @@
   <div id="toolbar">
     <div class="form-inline" role="form">
       {% if show_import_button %}
-      <span class="btn btn-file btn-primary">
+      <span class="btn btn-file btn-secondary">
         <i class="bi bi-upload h6"></i> Import CSV
         <input id="csv-file" type="file" />
       </span>
       {% endif %}
       {% if show_export_button %} 
-      <button id="export-button" type="button" class="btn btn-primary">
+      <button id="export-button" type="button" class="btn btn-secondary">
         <i class="bi bi-save h6"></i> Export CSV
       </button>
       {% endif %}
       {% if show_add_button %}
-      <button id="add-button" type="button" class="btn btn-success">
+      <button id="add-button" type="button" class="btn btn-secondary">
         <i class="bi bi-plus-square h6"></i> Add
       </button>
       {% endif %}
