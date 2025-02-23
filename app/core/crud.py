@@ -349,7 +349,7 @@ def get_list(
     conditions: Optional[Any] = None, 
     limit: Optional[int] = None,
     offset: Optional[int] = None,
-    sort_field: str = None,
+    sort_field: str = 'id',
     sort_order_ascending: bool = False,
     options: Optional[List[Any]] = None,
     foreign_data: Optional[Dict[str, Dict[str, Any]]] = None,

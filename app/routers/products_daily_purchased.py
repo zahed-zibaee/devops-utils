@@ -105,7 +105,7 @@ async def get_products_daily_purchased_list(
         limit=params.limit,
         offset=params.offset,
         conditions=conditions,
-        sort_field=params.sort if hasattr(params, 'sort') else 'id',
+        sort_field=params.sort if hasattr(params, 'sort') and params.order != "" else 'id',
         sort_order_ascending=True if hasattr(params, 'order') and params.order == "asc" else False,
         options=LIST_OPTIONS,
         foreign_data=FOREIGN_DATA,
