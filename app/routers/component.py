@@ -80,6 +80,7 @@ async def get_products_daily_purchased_component(request: Request):
                 {"field": "id", "title": "ID", "sortable": True},
                 {"field": "product_id", "title": "Product ID", "sortable": True},
                 {"field": "product_name", "title": "Product Name"},
+                {"field": "date", "title": "Date", "sortable": True},
                 {"field": "count", "title": "Count", "sortable": True},
                 {"field": "price", "title": "Price", "sortable": True},
                 {"field": "description", "title": "Description"},
