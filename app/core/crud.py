@@ -4,7 +4,7 @@ from typing import List, Dict, Any, Type, Optional, Tuple
 from sqlalchemy.orm import Session, load_only
 from sqlalchemy.orm.interfaces import ORMOption 
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
-from sqlalchemy import func
+from sqlalchemy import func, select
 from fastapi import HTTPException
 
 from app.core.logging import logger
@@ -377,12 +377,22 @@ def get_list(
         raw_query = db.query(model)
         query_with_options = apply_options(raw_query, options)
         query_filtered = apply_filters(query_with_options, soft_delete_condition, conditions)
-
+        
         # Count total records before applying filters
-        total_not_paginated = raw_query.with_entities(func.count()).scalar()
+        unfiltered_count_query = select(func.count()).select_from(model)
+        logger.debug(
+            "Executing count query for total_not_paginated: %s", 
+            str(unfiltered_count_query.compile(compile_kwargs={"literal_binds": True})).replace("\n", " ")
+            )
+        total_not_paginated = db.scalar(unfiltered_count_query)
 
         # Count total records after filters and pagination
-        total = query_filtered.with_entities(func.count()).scalar()
+        filtered_count_query = select(func.count()).select_from(query_filtered.subquery())
+        logger.debug(
+            "Executing count query for total: %s", 
+            str(filtered_count_query.compile(compile_kwargs={"literal_binds": True})).replace("\n", " ")
+        )
+        total = db.scalar(filtered_count_query)
 
         query = apply_pagination(
             apply_sorting(query_filtered, model, sort_field, sort_order_ascending), 
@@ -391,7 +401,7 @@ def get_list(
         )
         
         # Fetch records
-        logger.debug(f"Executing query: {str(query.statement.compile(compile_kwargs={'literal_binds': True}))}")
+        logger.debug(f"Executing query: {str(query.statement.compile(compile_kwargs={'literal_binds': True}))}".replace("\n", " "))
         rows = query.all()
                 
         if not foreign_data:
@@ -464,7 +474,7 @@ def get_item(
         query = query_item
 
         # Execute query
-        logger.debug(f"Executing query: {str(query.statement.compile(compile_kwargs={'literal_binds': True}))}")
+        logger.debug(f"Executing query: {str(query.statement.compile(compile_kwargs={'literal_binds': True}))}".replace("\n", " "))
         row = query.first()
 
         if not row:

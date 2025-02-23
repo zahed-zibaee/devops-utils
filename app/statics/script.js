@@ -669,7 +669,7 @@ function ImportCSV(url, checkJobStatusUrl) {
     },
     complete: () => {
       finishedProgress();
-      if (fileInput) fileInput.value = "";
+      if (csvFile) csvFile.value = "";
     },
   });
 }

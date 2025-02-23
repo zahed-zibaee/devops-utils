@@ -162,6 +162,7 @@ async def import_tax_and_moadian_csv(
         soft_delete_condition=SOFT_DELETE,
         perform_update=True,
         foreign_data=FOREIGN_DATA,
+        primary_key="id",
     )
 
     return JSONResponse(

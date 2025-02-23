@@ -76,8 +76,8 @@ def validate_csv_data(
                 errors.append(f"Row {row} failed validation: {str(e)}")
 
     if errors:
-        error_summary = f"CSV validation failed for {domain}: {len(errors)} errors found"
-        logger.debug("CSV validation failed errors:\n".join(errors[:5])) 
+        error_summary = f"CSV validation failed for {domain}: {len(errors)} errors found. Errors: {errors[:5]}"
+        logger.debug(error_summary) 
         raise ValueError(error_summary)
 
     logger.debug(f"Total validated rows: {len(valid_rows)}")
@@ -89,7 +89,7 @@ def process_csv(
     csv_model: Type,
     domain: str,
     remove_csv_null_data: Callable[[pd.DataFrame], pd.DataFrame],
-    encoding: str = "utf-8",
+    encoding: str = "utf-8-sig",
 ) -> List[Dict[str, Any]]:
     """
     Processes a CSV file.
@@ -118,7 +118,7 @@ def process_csv(
             remove_csv_null_data=remove_csv_null_data
         )
         csv_data.extend(validated_data)
-                
+
     except pd.errors.EmptyDataError:
         error_msg = f"CSV file for {domain} is empty"
         raise HTTPException(
@@ -235,9 +235,6 @@ def process_rows(
 
         for csv_row in csv_rows:
             row_id = csv_row.get(primary_key)
-            if row_id is None:
-                error_msg = f"Missing primary key '{primary_key}' in row: {csv_row}"
-                raise ValueError(error_msg)  
 
             row = existing_rows_dict.get(row_id)
 

@@ -58,6 +58,7 @@ class ProductDailyPurchasedCreate(BaseCreateModel):
     description: Optional[str]
           
 class ProductDailyPurchasedCSVModel(BaseCSVModel):
+    id: Optional[int]
     product_id: int
     date: date
     price: int
@@ -67,12 +68,17 @@ class ProductDailyPurchasedCSVModel(BaseCSVModel):
     @model_validator(mode="before")
     def normalize_data(cls, values):
         try:
-            values["id"] = int(values["id"])
-            if isinstance(values["price"], int) and int >= 0 and int <= 9223372036854775806:
+            if isinstance(values["id"], int):
+                values["id"] = int(values["id"])
+            elif not isinstance(values["id"], int) and isna(values["id"]):
+                values["id"] = None
+            else:
+                raise ValueError(f"Invalid data format for column id {values["id"]}")
+            if isinstance(values["price"], int) and int(values["price"]) >= 0 and int(values["price"]) <= 9223372036854775806:
                 values["price"] = int(values["price"])
             else:
                 raise ValueError(f"Invalid data format: price column value must be an integer.")
-            if isinstance(values["count"], int) and int >= 0 and int <= 9223372036854775806:
+            if isinstance(values["count"], int) and int(values["count"]) >= 0 and int(values["count"]) <= 9223372036854775806:
                 values["count"] = int(values["count"])
             else:
                 raise ValueError(f"Invalid data format: count column value must be an integer.")
