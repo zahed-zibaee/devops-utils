@@ -28,7 +28,7 @@ LOCK_IMPORT_NAME = f"{SUB_DOMAIN}_csv".upper()
 REMOVE_UNWANTED_CSV_FIELD_LIST = []
 IMPORT_CSV_REQUIRED_COLUMNS = ["id", "product_id", "date", "price", "count", "description"]
 SOFT_DELETE = None
-LIST_OPTIONS = []
+LIST_OPTIONS = None
 FOREIGN_KEYS = {"product_id": Product}
 DB_SESSION_GENERATOR_READ = lambda: next(get_db_postgres_read("product"))
 DB_SESSION_GENERATOR_WRITE = lambda: next(get_db_postgres_write("product"))
@@ -105,7 +105,8 @@ async def get_products_daily_purchased_list(
         limit=params.limit,
         offset=params.offset,
         conditions=conditions,
-        sort_field='id',
+        sort_field=params.sort if hasattr(params, 'sort') else 'id',
+        sort_order_ascending=True if hasattr(params, 'order') and params.order == "asc" else False,
         options=LIST_OPTIONS,
         foreign_data=FOREIGN_DATA,
     )
@@ -203,7 +204,6 @@ async def delete_products_daily_purchased_product(
         row_id=row_id,
         db=db,
         model=MainTableModel,
-        soft_delete_condition=SOFT_DELETE,
     )
     
 @router.post("/devops-tools/v1/products/products_daily_purchased", response_model=GetResponseModel)

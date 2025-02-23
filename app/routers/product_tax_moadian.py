@@ -30,7 +30,7 @@ LOCK_IMPORT_NAME = f"{SUB_DOMAIN}_csv".upper()
 REMOVE_UNWANTED_CSV_FIELD_LIST = ['status']
 IMPORT_CSV_REQUIRED_COLUMNS = ["id", "tax_rate", "moadian_product_id"]
 SOFT_DELETE = MainTableModel.status == 0
-LIST_OPTIONS = []
+LIST_OPTIONS = None
 FOREIGN_KEYS = None
 FOREIGN_DATA = None
 DB_SESSION_GENERATOR_READ = lambda: next(get_db_postgres_read('legacy'))
@@ -96,11 +96,12 @@ async def get_product_tax_and_moadian_list(
         limit=params.limit,
         offset=params.offset,
         conditions=conditions,
-        sort_field='id',
+        sort_field=params.sort if hasattr(params, 'sort') else 'id',
+        sort_order_ascending=True if hasattr(params, 'order') and params.order == "asc" else False,
         options=LIST_OPTIONS,
         foreign_data=FOREIGN_DATA,
     )
-
+    
 @router.get("/devops-tools/v1/products/tax_and_moadian/export_csv", response_class=StreamingResponse)
 async def export_product_tax_and_moadian_csv(
     db: Session = Depends(DB_SESSION_GENERATOR_READ),

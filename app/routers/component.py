@@ -11,7 +11,7 @@ templates = Jinja2Templates(directory="app/templates")
 @router.get("/devops-tools-front/v1/component/products/tax_and_moadian")
 async def get_products_tax_and_moadian_component(request: Request):
     return templates.TemplateResponse(
-        "components/data/view1.html", 
+        "components/data/view-table1.html", 
         {
             "request": request, 
             "title": "Products Rax And Moadian ID", 
@@ -23,6 +23,9 @@ async def get_products_tax_and_moadian_component(request: Request):
             "show_add_button": False,
             "show_export_button": True,
             "show_import_button": True,
+            "show_delete_button": False,
+            "show_sync_button": False,
+            "show_edit_button": True,
             "list_func": "ajaxRequestProductTaxMoadian",
             "export_url": "/devops-tools/v1/products/tax_and_moadian/export_csv",
             "import_url": "/devops-tools/v1/products/tax_and_moadian/import_csv/",
@@ -31,11 +34,11 @@ async def get_products_tax_and_moadian_component(request: Request):
             "delete_url": "/devops-tools/v1/products/tax_and_moadian/",
             "add_url": "/devops-tools/v1/products/tax_and_moadian",
             "table_columns": [
-                {"field": "id", "title": "ID"},
+                {"field": "id", "title": "ID", "sortable": True},
                 {"field": "name", "title": "Name"},
-                {"field": "tax_rate", "title": "Tax Rate"},
-                {"field": "moadian_product_id", "title": "Moadian Product ID"},
-                {"field": "state", "title": "State"},
+                {"field": "tax_rate", "title": "Tax Rate", "sortable": True},
+                {"field": "moadian_product_id", "title": "Moadian Product ID", "sortable": True},
+                {"field": "state", "title": "State", "sortable": True},
                 {"field": "actions", "title": "Actions"}
             ],
             "modal_title": "Products Tax and Moadian product ID",
@@ -51,7 +54,7 @@ async def get_products_tax_and_moadian_component(request: Request):
 @router.get("/devops-tools-front/v1/component/products/products_daily_purchased")
 async def get_products_daily_purchased_component(request: Request):
     return templates.TemplateResponse(
-        "components/data/view1.html", 
+        "components/data/view-table1.html", 
         {
             "request": request, 
             "title": "Products Daily Purchased", 
@@ -63,6 +66,9 @@ async def get_products_daily_purchased_component(request: Request):
             "show_add_button": True,
             "show_export_button": True,
             "show_import_button": True,
+            "show_delete_button": True,
+            "show_sync_button": False,
+            "show_edit_button": True,
             "list_func": "ajaxRequestProductsDailyPurchased",
             "export_url": "/devops-tools/v1/products/products_daily_purchased/export_csv",
             "import_url": "/devops-tools/v1/products/products_daily_purchased/import_csv/",
@@ -71,11 +77,11 @@ async def get_products_daily_purchased_component(request: Request):
             "delete_url": "/devops-tools/v1/products/products_daily_purchased/",
             "add_url": "/devops-tools/v1/products/products_daily_purchased",
             "table_columns": [
-                {"field": "id", "title": "ID"},
-                {"field": "product_id", "title": "Product ID"},
+                {"field": "id", "title": "ID", "sortable": True},
+                {"field": "product_id", "title": "Product ID", "sortable": True},
                 {"field": "product_name", "title": "Product Name"},
-                {"field": "count", "title": "Count"},
-                {"field": "price", "title": "Price"},
+                {"field": "count", "title": "Count", "sortable": True},
+                {"field": "price", "title": "Price", "sortable": True},
                 {"field": "description", "title": "Description"},
                 {"field": "actions", "title": "Actions"},
             ],

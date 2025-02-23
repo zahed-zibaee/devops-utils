@@ -102,6 +102,30 @@ def apply_pagination(
         logger.error(f"Error applying pagination: {e}")
         raise
 
+def apply_options(
+    query: Any,
+    options: Optional[List] = None,
+) -> Any:
+    """
+    Applies Options to a SQLAlchemy query.
+
+    Args:
+        query (Any): SQLAlchemy query object.
+        options (Optional[List]): List of query options
+        
+    Returns:
+        Any: Query object with applied pagination.
+    """
+    try:
+        if options is not None:
+            return query.options(*options)
+
+        return query
+
+    except SQLAlchemyError as e:
+        logger.error(f"Error applying options: {e}")
+        raise
+    
 def get_fields_for_model(model: Type, fields_needed: Optional[List[str]] = None):
     """
     Extracts only the required fields from a model and validates them.
@@ -350,19 +374,22 @@ def get_list(
         Dict[str, Any]: Dictionary containing fetched rows and total count.
     """
     try:  
-        options = options or []
-        query_with_options = db.query(model).options(*options)
+        raw_query = db.query(model)
+        query_with_options = apply_options(raw_query, options)
         query_filtered = apply_filters(query_with_options, soft_delete_condition, conditions)
-        query_sorted = apply_sorting(query_filtered, model, sort_field, sort_order_ascending)
-        query_paginated = apply_pagination(query_sorted, limit, offset)
-        query = query_paginated
 
         # Count total records before applying filters
-        total_not_paginated = query_filtered.with_entities(func.count()).scalar()
+        total_not_paginated = raw_query.with_entities(func.count()).scalar()
 
         # Count total records after filters and pagination
-        total = apply_pagination(query_filtered, limit, offset).with_entities(func.count()).scalar()
+        total = query_filtered.with_entities(func.count()).scalar()
 
+        query = apply_pagination(
+            apply_sorting(query_filtered, model, sort_field, sort_order_ascending), 
+            limit, 
+            offset
+        )
+        
         # Fetch records
         logger.debug(f"Executing query: {str(query.statement.compile(compile_kwargs={'literal_binds': True}))}")
         rows = query.all()
@@ -429,8 +456,8 @@ def get_item(
     """
     try:
         # Make query
-        options = options or []
-        query_with_options = db.query(model).options(*options)
+        raw_query = db.query(model)
+        query_with_options = apply_options(raw_query, options)
         query_filtered = apply_filters(query_with_options, soft_delete_condition, conditions)
         # Fetch the item by ID
         query_item = query_filtered.filter(model.id == row_id)
@@ -494,8 +521,8 @@ def update_item(
     row = None
     try:
         # Make query
-        options = options or []
-        query_with_options = db.query(model).options(*options)
+        raw_query = db.query(model)
+        query_with_options = apply_options(raw_query, options)
         query_filtered = apply_filters(query_with_options, soft_delete_condition, conditions)
         # Fetch the item by ID
         query_item = query_filtered.filter(model.id == row_id)
@@ -618,9 +645,10 @@ def delete_item(
     db: Session,
     row_id: Any,
     model: Type,
+    options: Optional[List[ORMOption]] = None,
     soft_delete_field: Optional[str] = None,
     soft_delete_value: Optional[Any] = None,
-) -> None:
+) -> Dict:
     """
     Delete an item from the database. Supports both soft and hard delete.
 
@@ -636,8 +664,8 @@ def delete_item(
     """
     try:
         # Make query
-        options = options or []
-        query_with_options = db.query(model).options(*options)
+        raw_query = db.query(model)
+        query_with_options = apply_options(raw_query, options)
         # Fetch the item by ID
         query_item = query_with_options.filter(model.id == row_id)
         query = query_item
@@ -657,6 +685,8 @@ def delete_item(
         # If no soft delete, perform hard delete
         db.delete(row)
         db.commit()
+        
+        return {}
 
     except Exception as e:
         db.rollback()

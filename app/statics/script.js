@@ -3,6 +3,14 @@ const toastLiveExample = document.getElementById("toast");
 var token = "";
 var hostname = "";
 
+function detailFormatter(index, row) {
+  var html = []
+  $.each(row, function (key, value) {
+    html.push('<p><b>' + key + ':</b> ' + value + '</p>')
+  })
+  return html.join('')
+}
+
 const prepend_url = (url) => {
   const isProduction =
     hostname &&
@@ -350,7 +358,7 @@ function ajaxDelete(endpoint, rowId) {
       "Content-Type": "application/json",
     },
     success: (res) => {
-      createToast("Record deleted successfully.", "success");
+      createToast(`Record ID ${rowId} deleted successfully.`, "success");
       $table.bootstrapTable("refresh");
     },
     error: (jqXHR) => {
@@ -436,10 +444,12 @@ function ajaxRequestProductTaxMoadian(params) {
     row.tax_rate = row.tax_rate !== null ? row.tax_rate + "%" : "Not Defined";
     row.moadian_product_id = row.moadian_product_id !== "" ? row.moadian_product_id : "Not Defined";
     row.state = row.state === true ? "Online" : "Offline";
-    row.actions = `
+    if (activeEditBtn){
+      row.actions = `
       <button class="btn btn-sm btn-primary open-modal-edit-btn" data-id="${row.id}">
         <i class="bi bi-pen h6"></i> Edit
       </button>`;
+    }
     return row;
   };
 
@@ -455,13 +465,21 @@ function ajaxRequestProductsDailyPurchased(params) {
     row.price = row.price !== null ? row.price.toLocaleString() + " Toman" : "Not Defined";
     row.count = row.count !== null ? row.count : "Not Defined";
     row.description = row.description !== null ? row.description : "Not Defined";
-    row.actions = `
+    row.actions = ``
+    if (activeEditBtn){
+      row.actions = row.actions + `
       <button class="btn btn-sm btn-primary open-modal-edit-btn my-1" data-id="${row.id}">
         <i class="bi bi-pen h6"></i> Edit
       </button>
+      `;
+    }
+    if (activeDeleteBtn){
+      row.actions = row.actions + `
       <button class="btn btn-sm btn-danger open-modal-delete-btn my-1" data-id="${row.id}">
         <i class="bi bi-trash h6"></i> Delete
-      </button>`;
+      </button>
+      `;
+    }
     return row;
   };
 
