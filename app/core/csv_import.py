@@ -76,8 +76,12 @@ def validate_csv_data(
                 errors.append(f"Row {row} failed validation: {str(e)}")
 
     if errors:
-        error_summary = f"CSV validation failed for {domain}: {len(errors)} errors found. Errors: {errors[:5]}"
-        logger.debug(error_summary) 
+        error_summary = f"CSV validation failed for {domain}: {len(errors)} errors found. First errors: {
+            errors[0][:500]
+            .replace("\n", " ")
+            .replace("\\n", " ")
+            .replace("    For further information visit https://errors.pydantic.dev/", " ")}"
+        logger.debug(f"CSV validation failed for {domain}: {len(errors)} errors found. Errors: {errors}") 
         raise ValueError(error_summary)
 
     logger.debug(f"Total validated rows: {len(valid_rows)}")

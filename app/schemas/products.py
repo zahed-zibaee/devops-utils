@@ -48,19 +48,28 @@ class ProductTaxMoadianCSVModel(BaseCSVModel):
     @model_validator(mode="before")
     def normalize_data(cls, values):
         try:
-            values["id"] = int(values["id"])
-
-            if "tax_rate" in values and isna(values["tax_rate"]):
-                values["tax_rate"] = None
+            if "id" not in values or not isinstance(values["id"], (int, float)):
+                raise ValueError(f"Invalid id format: {values.get('id'), None}. ID must be an integer.")
             else:
-                values["tax_rate"] = int(values["tax_rate"]) if values["tax_rate"] is not None else None
+                values["id"] = int(values["id"])
+            if "tax_rate" in values:
+                if isna(values["tax_rate"]):
+                    values["tax_rate"] = None
+                else:
+                    try:
+                        values["tax_rate"] = int(values["tax_rate"])
+                    except:
+                        raise ValueError(f'Invalid data format for tax_rate: {values["tax_rate"]}')
+            if "moadian_product_id" in values:
+                if isna(values["moadian_product_id"]):
+                    values["moadian_product_id"] = ""
+                else:
+                    try:
+                        values["moadian_product_id"] = str(int(float(values["moadian_product_id"])))
+                    except:
+                        raise ValueError(f'Invalid data format for moadian_product_id: {values["moadian_product_id"]}')
 
-            if "moadian_product_id" in values and isna(values["moadian_product_id"]):
-                values["moadian_product_id"] = ""
-            else:
-                values["moadian_product_id"] = str(int(values["moadian_product_id"]))
-
-        except (ValueError, KeyError) as e:
+        except (KeyError, TypeError) as e:
             raise ValueError(f"Invalid data format: {e}")
         return values
     
@@ -70,8 +79,4 @@ class ProductTaxMoadianCSVModel(BaseCSVModel):
             raise ValueError("Invalid tax rate: must be between 0 and 100")
         return value
 
-    @field_validator("moadian_product_id", mode="before")
-    def validate_moadian_product_id(cls, value):
-        if isna(value):
-            return ""  
-        return str(value)  
+

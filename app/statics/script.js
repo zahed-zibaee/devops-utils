@@ -359,7 +359,7 @@ function ajaxDelete(endpoint, rowId) {
     },
     success: (res) => {
       createToast(`Record ID ${rowId} deleted successfully.`, "success");
-      $table.bootstrapTable("refresh");
+      onSuccess();
     },
     error: (jqXHR) => {
       handleErrors(jqXHR.status, jqXHR.responseJSON);
@@ -381,7 +381,7 @@ function ajaxAddRecord(endpoint, data) {
     data: JSON.stringify(data),
     success: (res) => {
       createToast("Record added successfully.", "success");
-      $table.bootstrapTable("refresh");
+      onSuccess();
     },
     error: (jqXHR) => {
       handleErrors(jqXHR.status, jqXHR.responseJSON);
@@ -560,17 +560,18 @@ function checkJobStatus(endpoint, jobName) {
         if (status === "pending") {
           createOrUpdateToastTask("pending", jobName);
         } else if (status === "succeeded") {
-          createOrUpdateToastTask("succeeded", jobName, 5000);
+          createOrUpdateToastTask("succeeded", jobName, true);
           createToast(`Job ${jobName} finished with status Success.`, "success", "Task", 9999999999);
           console.log(`Job ${jobName} succeeded. Stopping further requests.`);
+          onSuccess();
           return;
         } else if (status === "failed") {
-          createOrUpdateToastTask("failed", jobName, 5000);
+          createOrUpdateToastTask("failed", jobName, true);
           createToast(`Job ${jobName} Failed.`, "error", data.error, 9999999999);
           console.log(`Job ${jobName} failed: ${data.error}. Stopping further requests.`);
           return;
         } else if (status === "unknown") {
-          createOrUpdateToastTask("unknown", jobName, 5000);
+          createOrUpdateToastTask("unknown", jobName, true);
           createToast(`Job ${jobName} finished with status Unknown.`, "warning", "Task", 9999999999);
           console.log(`Job ${jobName} is unknown. Stopping further requests.`);
           return;

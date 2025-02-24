@@ -63,31 +63,34 @@ class ProductDailyPurchasedCSVModel(BaseCSVModel):
     date: date
     price: int
     count: int
-    description: Optional[str]
+    description: Optional[str] = ""
     
     @model_validator(mode="before")
     def normalize_data(cls, values):
         try:
-            if isna(values["id"]):
-                values["id"] = None
-            elif isinstance(values["id"], int) or isinstance(values["id"], float):
-                values["id"] = int(values["id"])
+            if "id" in values:
+                if isna(values["id"]):
+                    values["id"] = None
+                elif isinstance(values["id"], (int, float)):
+                    values["id"] = int(values["id"])
+                else:
+                    raise ValueError(f'Invalid data format for column id {values["id"]}')
+            price = values.get("price", None)
+            if isinstance(price, (int, float)) and 0 <= int(price) <= 9223372036854775806:
+                values["price"] = int(price)
             else:
-                raise ValueError(f"Invalid data format for column id {values["id"]}")
-            if isinstance(values["price"], int) and int(values["price"]) >= 0 and int(values["price"]) <= 9223372036854775806:
-                values["price"] = int(values["price"])
+                raise ValueError(f"Invalid data format: price column value must be a positive integer. price is {price}")
+            count = values.get("count", None)
+            if isinstance(count, (int, float)) and 0 <= int(count) <= 9223372036854775806:
+                values["price"] = int(price)
             else:
-                raise ValueError(f"Invalid data format: price column value must be an integer.")
-            if isinstance(values["count"], int) and int(values["count"]) >= 0 and int(values["count"]) <= 9223372036854775806:
-                values["count"] = int(values["count"])
-            else:
-                raise ValueError(f"Invalid data format: count column value must be an integer.")
-            values["date"] = parse_date(values["date"])                
-            if "description" in values and isna(values["description"]):
-                values["description"] = ""
-            else:
-                str(values["description"])
+                raise ValueError(f"Invalid data format: count column value must be a positive integer. count is {count}")
+            values["date"] = parse_date(values["date"])             
+            if "description" in values: 
+                values["description"] = str(values.get("description") or "")
+            else: 
+                raise ValueError(f"Invalid description format: {values.get('description'), None}. Description must be an string.")
 
-        except (ValueError, KeyError) as e:
+        except (KeyError, TypeError) as e:
             raise ValueError(f"Invalid data format: {e}")
         return values

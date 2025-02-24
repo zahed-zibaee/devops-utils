@@ -240,13 +240,17 @@
     initTable();
     $("#locale").change(initTable);
   });
+  
+  function onSuccess() {
+    $table.bootstrapTable("refresh");
+  };
 
   // Listen for messages from parent (to receive hostname and token)
   window.addEventListener("message", (event) => {
     if (event.data && event.data.hostname && event.data.token) {
       hostname = event.data.hostname;
       token    = event.data.token;
-      $table.bootstrapTable("refresh");
+      onSuccess();
       finishedProgress();
       console.log("Received message from parent:", event.data);
     }
@@ -255,7 +259,6 @@
   // CSV file upload handler
   csvFile.addEventListener("change", () => {
     ImportCSV(pageConfig.importUrl, pageConfig.importStatusUrl);
-    $table.bootstrapTable("refresh");
   });
   {% endif %}
   {% if show_export_button %}
