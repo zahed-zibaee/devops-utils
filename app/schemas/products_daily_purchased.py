@@ -87,7 +87,10 @@ class ProductDailyPurchasedCSVModel(BaseCSVModel):
                 raise ValueError(f"Invalid data format: count column value must be a positive integer. count is {count}")
             values["date"] = parse_date(values["date"])             
             if "description" in values: 
-                values["description"] = str(values.get("description") or "")
+                if isna(values["description"]):
+                    values["description"] = ""
+                else:
+                    values["description"] = str(values["description"])
             else: 
                 raise ValueError(f"Invalid description format: {values.get('description'), None}. Description must be an string.")
 
