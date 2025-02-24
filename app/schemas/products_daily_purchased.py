@@ -1,8 +1,8 @@
 
 
 from datetime import date, datetime
-from pydantic import model_validator, Field
-from typing import Optional
+from pydantic import model_validator, Field, field_validator
+from typing import Optional, Union
 from sqlalchemy import Column, Integer, String, Date, BigInteger
 from pandas import isna
 
@@ -45,17 +45,27 @@ class ProductDailyPurchasedResponse(BaseResponseModel):
      
 class ProductDailyPurchasedUpdate(BaseUpdateModel):
     product_id: int
-    date: date
+    date: Union[str, date]
     price: int = Field(ge=0, le=9223372036854775806)
     count: int = Field(ge=0, le=9223372036854775806)
     description: Optional[str]
+    
+    @field_validator("date", mode="before")
+    @classmethod
+    def parse_date(cls, value):
+        return parse_date(value)
   
 class ProductDailyPurchasedCreate(BaseCreateModel):
     product_id: int
-    date: date
+    date: Union[str, date]
     price: int = Field(ge=0, le=9223372036854775806)
     count: int = Field(ge=0, le=9223372036854775806)
     description: Optional[str]
+    
+    @field_validator("date", mode="before")
+    @classmethod
+    def parse_date(cls, value):
+        return parse_date(value)
           
 class ProductDailyPurchasedCSVModel(BaseCSVModel):
     id: Optional[int]

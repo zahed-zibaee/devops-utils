@@ -46,7 +46,7 @@ def parse_date(date_str):
     
     for fmt in formats:
         try:
-            return datetime.strptime(date_str, fmt)
+            return datetime.strptime(date_str, fmt).date()
         except ValueError:
             continue
     
