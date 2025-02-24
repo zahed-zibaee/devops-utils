@@ -151,7 +151,9 @@ async def import_products_daily_purchased_csv(
             detail="Invalid file extension (only CSV files!).",
         )
     set_task_import_csv_status(task_id, "active", SUB_DOMAIN, ttl=1260)
-    import_to_csv_task(process_csv(
+    background_tasks.add_task(
+        import_to_csv_task,
+        process_csv(
             file=file,
             required_columns=IMPORT_CSV_REQUIRED_COLUMNS,
             csv_model=CSVModel,
@@ -170,30 +172,8 @@ async def import_products_daily_purchased_csv(
         perform_update=True,
         perform_insert=True,
         foreign_data=FOREIGN_DATA,
-        primary_key="id",)
-    # background_tasks.add_task(
-    #     import_to_csv_task,
-    #     process_csv(
-    #         file=file,
-    #         required_columns=IMPORT_CSV_REQUIRED_COLUMNS,
-    #         csv_model=CSVModel,
-    #         domain=SUB_DOMAIN,
-    #         remove_csv_null_data=remove_csv_null_data,
-    #     ),
-    #     domain=SUB_DOMAIN,
-    #     task_id=task_id,
-    #     db_read=db_read,
-    #     db_write=db_write,
-    #     model=MainTableModel,
-    #     update_row_data=update_row_data,
-    #     truncate_data=truncate_data,
-    #     lock_name=LOCK_IMPORT_NAME,
-    #     soft_delete_condition=SOFT_DELETE,
-    #     perform_update=True,
-    #     perform_insert=True,
-    #     foreign_data=FOREIGN_DATA,
-    #     primary_key="id",
-    # )
+        primary_key="id",
+    )
 
     return JSONResponse(
         content={"message": "Task accepted for processing", "task_id": f"{task_id}"},

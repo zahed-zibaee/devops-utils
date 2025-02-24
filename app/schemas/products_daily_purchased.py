@@ -6,7 +6,7 @@ from typing import Optional
 from sqlalchemy import Column, Integer, String, Date, BigInteger
 from pandas import isna
 
-from app.schemas.main import Base, BaseResponseModel, BaseCSVModel, BaseUpdateModel, BaseCreateModel
+from app.schemas.main import Base, BaseResponseModel, BaseCSVModel, BaseUpdateModel, BaseCreateModel, parse_date
        
 class ProductDailyPurchased(Base):
     __tablename__ = "products_daily_purchased"
@@ -68,10 +68,10 @@ class ProductDailyPurchasedCSVModel(BaseCSVModel):
     @model_validator(mode="before")
     def normalize_data(cls, values):
         try:
-            if isinstance(values["id"], int):
-                values["id"] = int(values["id"])
-            elif not isinstance(values["id"], int) and isna(values["id"]):
+            if isna(values["id"]):
                 values["id"] = None
+            elif isinstance(values["id"], int) or isinstance(values["id"], float):
+                values["id"] = int(values["id"])
             else:
                 raise ValueError(f"Invalid data format for column id {values["id"]}")
             if isinstance(values["price"], int) and int(values["price"]) >= 0 and int(values["price"]) <= 9223372036854775806:
@@ -82,7 +82,7 @@ class ProductDailyPurchasedCSVModel(BaseCSVModel):
                 values["count"] = int(values["count"])
             else:
                 raise ValueError(f"Invalid data format: count column value must be an integer.")
-            values["date"] = datetime.strptime(values["date"], '%Y-%m-%d')
+            values["date"] = parse_date(values["date"])                
             if "description" in values and isna(values["description"]):
                 values["description"] = ""
             else:
