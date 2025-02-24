@@ -109,15 +109,16 @@
             >
             <input
               type="text"
-              class="form-control"
+              class="form-control {% if field.type == "date" %}gregorian-date {% endif %}{% if field.type == "persianDate" %}persian-date {% endif %}"
               id="{{ field.id }}"
               {%
               if
               field.readonly
               %}readonly
-              disabled{%
+               disabled {%
               endif
               %}
+              {% if field.no_auto_complete %} autocomplete="off" {% endif %}
             />
           </div>
           {% endfor %}
@@ -175,7 +176,7 @@
           {% if not field.readonly %}
           <div class="mb-3">
             <label for="add-{{ field.id }}" class="form-label">{{ field.label }}</label>
-            <input type="text" class="form-control" id="add-{{ field.id }}">
+            <input type="text" class="form-control {% if field.type == "date" %}gregorian-date {% endif %}{% if field.type == "persianDate" %}persian-date {% endif %}" id="add-{{ field.id }}" {% if field.no_auto_complete %}autocomplete="off"{% endif %}>
           </div>
           {% endif %}
           {% endfor %}

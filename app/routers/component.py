@@ -91,7 +91,7 @@ async def get_products_daily_purchased_component(request: Request):
                 {"id": "editID", "label": "ID", "field_key": "id", "readonly": True},
                 {"id": "editProductID", "label": "Product ID", "field_key": "product_id"},
                 {"id": "editProductName", "label": "Product Name", "field_key": "product_name" ,"readonly": True},
-                {"id": "editDate", "label": "Date", "field_key": "date"},
+                {"id": "editDate", "label": "Date", "field_key": "date", "type": "date", "no_auto_complete": True},
                 {"id": "editCount", "label": "Count", "field_key": "count"},
                 {"id": "editPrice", "label": "Price", "field_key": "price", "transform": "removeMoneyFormat"},
                 {"id": "editDescription", "label": "Description", "field_key": "description"}

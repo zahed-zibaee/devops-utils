@@ -838,3 +838,28 @@ function domLoaded() {
     });
 });
 };
+
+$(document).ready(function() {
+  // Initialize Persian Datepicker on inputs with class 'persian-date'
+  $('.persian-date').each(function() {
+      $(this).pDatepicker({
+          format: 'YYYY/MM/DD',
+          initialValue: true,
+          calendarType: 'persian',
+          calendar: {
+              persian: {
+                  locale: 'en'
+              }
+          }
+      });
+  });
+
+  // Initialize Gregorian Datepicker on inputs with class 'gregorian-date'
+  $('.gregorian-date').each(function() {
+      $(this).pDatepicker({
+          format: 'YYYY/MM/DD',
+          initialValue: true,
+          calendarType: 'gregorian'
+      });
+  });
+});
