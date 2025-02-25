@@ -6,13 +6,13 @@ from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import String
 
-from app.core.db import get_db_postgres
+from app.core.db import get_db_postgres_read, get_db_postgres_write
 from app.schemas.access import Access, Permissions, PermissionsBase, PermissionsUpdate, AccessBase, AccessUpdate
 
 router = APIRouter()
 
-Get_db_postgres_access_read = lambda: get_db_postgres('access', 'read')
-Get_db_postgres_access_write = lambda: get_db_postgres('access', 'write')
+Get_db_postgres_access_read = lambda: next(get_db_postgres_read('access'))
+Get_db_postgres_access_write = lambda: next(get_db_postgres_read('write'))
 
 @router.get("/devops-tools/v1/access/endpoint/list", response_model=Page[AccessUpdate])
 async def list_access(
