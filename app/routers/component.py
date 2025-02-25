@@ -110,6 +110,7 @@ async def get_app_settings_component(request: Request):
             "order_lock": feature_status('order_lock'),
             "aggregation": feature_status('aggregation'),
             "access_management": feature_status('access_management'),
+            "access_management_sync": feature_status('access_management_sync'),
         },
         })
 

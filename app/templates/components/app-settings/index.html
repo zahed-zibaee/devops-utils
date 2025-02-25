@@ -37,7 +37,7 @@
       </button>
     </li>
     {% endif %}
-    {% if disabled_feature.get('access_management') %}
+    {% if disabled_feature.get('access_management') or disabled_feature.get('access_management_sync') %}
     <li class="nav-item" role="presentation">
       <button
         class="nav-link"
@@ -53,7 +53,7 @@
       </button>
     </li>
     {% endif %}
-    {% if disabled_feature.get('access_management') %}
+    {% if disabled_feature.get('access_management') or disabled_feature.get('access_management_sync') %}
     <li class="nav-item" role="presentation">
       <button
         class="nav-link"
@@ -70,6 +70,7 @@
     </li>
     {% endif %}
   </ul>
+  {% if disabled_feature.get('order_lock') %}
   <div class="tab-content mb-3 mt-4" id="myTabContent">
     <div
       class="tab-pane fade show active"
@@ -104,6 +105,8 @@
         </button>
       </div>
     </div>
+    {% endif %}
+    {% if disabled_feature.get('aggregation') %}
     <div
       class="tab-pane fade"
       id="schema"
@@ -127,6 +130,8 @@
         </button>
       </div>
     </div>
+    {% endif %}
+    {% if disabled_feature.get('access_management') or disabled_feature.get('access_management_sync') %}
     <div
     class="tab-pane fade"
     id="access-permissions"
@@ -144,9 +149,12 @@
                                     <button id="createPermissionButton" type="button" class="btn btn-primary">
                                         <i class="bi bi-plus h6"></i> Create Permissions
                                     </button>
+                                    {% if disabled_feature.get('access_management_sync') %}
                                     <button id="access-sync-button-permission" type="button" class="btn btn-secondary mx-1">
                                       <i class="bi bi-plus h6"></i>Sync Table
                                     </button>
+                                    {% endif %}
+                                
                                 </div>
                             </div>
                         </div>
@@ -182,7 +190,8 @@
         </div>
     </div>
 </div>
-
+{% endif %}
+{% if disabled_feature.get('access_management') or disabled_feature.get('access_management_sync') %}
     <div class="select d-none">
       <select class="form-control" id="locale">
         <option value="en-US" selected>en-US</option>
@@ -207,9 +216,11 @@
                                 <button id="accessTableCreate" type="button" class="btn btn-primary">
                                     <i class="bi bi-plus h6"></i> Create Access
                                 </button>
+                                {% if disabled_feature.get('access_management_sync') %}
                                 <button id="access-sync-button-endpoint" type="button" class="btn btn-secondary mx-1">
                                   <i class="bi bi-plus h6"></i>Sync Table
                                 </button>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
@@ -247,7 +258,7 @@
         </div>
     </div>
 </div>
-
+{% endif %}
         <div class="modal fade" id="editModalAccessTable" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
           <div class="modal-dialog">
               <div class="modal-content">

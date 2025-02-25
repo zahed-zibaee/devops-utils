@@ -18,9 +18,11 @@ def get_active_features():
         features.append(job_sync_aggregation_schema)
     if feature_status('access_management'):
         features.append(access_management)
+    if feature_status('access_management_sync'):        
         features.append(job_sync_access)
     if feature_status('monitoring'):
         features.append(monitoring)
     if feature_status('products_daily_purchased'):
         features.append(products_daily_purchased)
+    
     return features
