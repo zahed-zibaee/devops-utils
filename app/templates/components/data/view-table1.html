@@ -103,10 +103,7 @@
       <div class="modal-body">
         <form id="editForm">
           {% for field in modal_fields %}
-          <div class="mb-3">
-            <label for="{{ field.id }}" class="form-label"
-              >{{ field.label }}</label
-            >
+          <div class="mb-3 form-floating input-wrapper">
             <input
               type="text"
               class="form-control {% if field.type == "date" %}gregorian-date {% endif %}{% if field.type == "persianDate" %}persian-date {% endif %}"
@@ -120,6 +117,9 @@
               %}
               {% if field.no_auto_complete %} autocomplete="off" {% endif %}
             />
+            <label for="{{ field.id }}" class="form-label"
+              >{{ field.label }}</label
+            >
           </div>
           {% endfor %}
         </form>
@@ -174,9 +174,9 @@
         <form id="addForm">
           {% for field in modal_fields %}
           {% if not field.readonly %}
-          <div class="mb-3">
-            <label for="add-{{ field.id }}" class="form-label">{{ field.label }}</label>
+          <div class="mb-3 form-floating input-wrapper">
             <input type="text" class="form-control {% if field.type == "date" %}gregorian-date {% endif %}{% if field.type == "persianDate" %}persian-date {% endif %}" id="add-{{ field.id }}" {% if field.no_auto_complete %}autocomplete="off"{% endif %}>
+            <label for="add-{{ field.id }}" class="form-label">{{ field.label }}</label>
           </div>
           {% endif %}
           {% endfor %}
