@@ -405,7 +405,7 @@ def get_list(
         rows = query.all()
                 
         if not foreign_data:
-            response_data = [response_schema.from_orm(row.__dict__).model_dump() for row in rows]
+            response_data = [response_schema.from_orm(row).model_dump() for row in rows]
             logger.debug(f"Fetched {model.__tablename__} ({len(response_data)} records)")
             return {
                 "rows": response_data,

@@ -21,15 +21,16 @@ class ProductTaxMoadianResponseModel(BaseResponseModel):
     moadian_product_id: str
     state: bool 
     
-    @field_validator("moadian_product_id")
-    def validate_moadian_product_id(cls, value):
-        if value != "" and value is not None:
-            try:
-                return str(int(value))
-            except:
-                return ValueError(f"Moadian Product ID must be empty string or a number but it got {value}")
-        else:
-            return ""
+    @classmethod
+    def from_orm(cls, obj):
+            
+        return cls(
+            id=obj.id,
+            name=obj.name,
+            tax_rate=obj.tax_rate,
+            moadian_product_id="" if obj.moadian_product_id == "" or obj.moadian_product_id is None else obj.moadian_product_id,
+            state=obj.state,
+        )
     
 class ProductTaxMoadianUpdate(BaseUpdateModel):
     tax_rate: Optional[int] = Field(None, ge=0, le=100)
