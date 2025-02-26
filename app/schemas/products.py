@@ -11,7 +11,7 @@ class Product(Base):
     id = Column(BigInteger, primary_key=True, index=True)
     name = Column(String)
     tax_rate = Column(Integer, nullable=True)
-    moadian_product_id = Column(String, nullable=False)
+    moadian_product_id = Column(String, nullable=True)
     status = Column(Boolean)
     state = Column(Boolean)
 
@@ -19,30 +19,35 @@ class ProductTaxMoadianResponseModel(BaseResponseModel):
     name: str
     tax_rate: Optional[int] = Field(None, ge=0, le=100)
     moadian_product_id: str
-    state: bool
-
-    @field_validator("tax_rate")
-    def validate_tax_rate(cls, value):
-        if value is not None and (value < 0 or value > 100):
-            raise ValueError("Tax rate must be between 0 and 100")
-        return value
+    state: bool 
     
     @field_validator("moadian_product_id")
     def validate_moadian_product_id(cls, value):
-        if value != "":
+        if value != "" and value is not None:
             try:
                 return str(int(value))
             except:
-                return ValueError("Moadian Product ID must be empty string or a number")
+                return ValueError(f"Moadian Product ID must be empty string or a number but it got {value}")
         else:
             return ""
     
 class ProductTaxMoadianUpdate(BaseUpdateModel):
     tax_rate: Optional[int] = Field(None, ge=0, le=100)
     moadian_product_id: str
+    
+    @field_validator("moadian_product_id", mode="before")
+    @classmethod
+    def validate_moadian_product_id(cls, value):
+        if value != "" and value is not None:
+            try:
+                return str(int(value))
+            except:
+                return ValueError(f"Moadian Product ID must be empty string or a number but it got {value}")
+        else:
+            return ""
 
 class ProductTaxMoadianCSVModel(BaseCSVModel):
-    tax_rate: Optional[int]  
+    tax_rate: Optional[int] = Field(None, ge=0, le=100) 
     moadian_product_id: str
     
     @model_validator(mode="before")
@@ -72,11 +77,5 @@ class ProductTaxMoadianCSVModel(BaseCSVModel):
         except (KeyError, TypeError) as e:
             raise ValueError(f"Invalid data format: {e}")
         return values
-    
-    @field_validator("tax_rate", mode="before")
-    def validate_tax_rate(cls, value):
-        if value is not None and (value < 0 or value > 100):
-            raise ValueError("Invalid tax rate: must be between 0 and 100")
-        return value
 
 
