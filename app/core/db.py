@@ -59,7 +59,7 @@ def create_pg_session(database, mode):
         pool_timeout=60,
         pool_size=5,
         max_overflow=10,
-        pool_recycle=-1,
+        pool_recycle=1800,
         pool_pre_ping=True
     )
     return sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -76,7 +76,7 @@ engine_postgres_aggregation_read = create_engine(
     pool_timeout=60,
     pool_size=5,
     max_overflow=10,  
-    pool_recycle=-1,
+    pool_recycle=1800,
     pool_pre_ping=True
 )
 
@@ -91,7 +91,7 @@ engine_postgres_aggregation_write = create_engine(
     pool_timeout=60,
     pool_size=5,
     max_overflow=10,  
-    pool_recycle=-1,
+    pool_recycle=1800,
     pool_pre_ping=True
 )
 
@@ -105,12 +105,14 @@ def get_db_postgres(database, mode):
         yield db
     except OperationalError as e:
         logger.error(f"Operational error while connecting to the PostgreSQL {mode} database for {database}: {e}")
+        db.rollback()  
         raise HTTPException(status_code=500, detail="Database connection error")
     except SQLAlchemyError as e:
         logger.error(f"Error with the PostgreSQL {mode} database for {database}: {e}")
+        db.rollback()
         raise HTTPException(status_code=500, detail="Internal Server Error")
     finally:
-        db_session().close()
+        db.close()
 
 def get_db_postgres_read(domain):
     """
