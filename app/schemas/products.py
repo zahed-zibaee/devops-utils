@@ -28,7 +28,7 @@ class ProductTaxMoadianResponseModel(BaseResponseModel):
             id=obj.id,
             name=obj.name,
             tax_rate=obj.tax_rate,
-            moadian_product_id="" if obj.moadian_product_id == "" or obj.moadian_product_id is None else obj.moadian_product_id,
+            moadian_product_id=obj.moadian_product_id if (obj.moadian_product_id != "" and obj.moadian_product_id is not None) else "",
             state=obj.state,
         )
     
